@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🌟 수학 천재 게임</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+body{font-family:'Nunito','Segoe UI',sans-serif;touch-action:manipulation;overscroll-behavior:none}
+button{cursor:pointer;font-family:'Nunito','Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent;transition:transform 0.12s}
+button:active{transform:scale(0.92)!important}
+
+@keyframes starPop{0%{opacity:1;transform:translateY(0)scale(1)}100%{opacity:0;transform:translateY(-120px)scale(2.3)}}
+@keyframes scoreFloat{0%{opacity:1;transform:translateX(-50%)translateY(0)scale(1)}100%{opacity:0;transform:translateX(-50%)translateY(-80px)scale(1.2)}}
+@keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-11px)}35%{transform:translateX(11px)}55%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes levelUp{0%{opacity:0;transform:scale(0.3)rotate(-15deg)}60%{transform:scale(1.18)rotate(4deg)}100%{opacity:1;transform:scale(1)rotate(0)}}
+@keyframes timerWarn{0%,100%{opacity:1}50%{opacity:0.5}}
+@keyframes popIn{0%{opacity:0;transform:scale(0.4)}70%{transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+@keyframes floatA{0%,100%{transform:translateY(0)rotate(-4deg)}50%{transform:translateY(-13px)rotate(4deg)}}
+@keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-17px)}}
+@keyframes floatC{0%,100%{transform:translateY(0)rotate(6deg)}50%{transform:translateY(-9px)rotate(-6deg)}}
+@keyframes listenBeat{0%,100%{transform:scale(1);filter:drop-shadow(0 0 6px rgba(255,255,255,0.4))}50%{transform:scale(1.14);filter:drop-shadow(0 0 18px rgba(255,255,255,0.8))}}
+@keyframes homeBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useRef,useEffect,useCallback}=React;
+
+/* ═══════════════════════════════════════════════════════════
+   BGM  —  Web Audio API, pentatonic melody
+═══════════════════════════════════════════════════════════ */
+const BGM=(()=>{
+  let ctx=null,master=null,playing=false,tid=null;
+  // C-major pentatonic: C5 D5 E5 G5 A5 C6
+  const MEL=[
+    [523,0.22],[659,0.22],[784,0.22],[880,0.44],
+    [784,0.22],[659,0.22],[587,0.22],[659,0.44],
+    [523,0.22],[659,0.22],[784,0.22],[1047,0.44],
+    [880,0.22],[784,0.22],[659,0.66],[523,0.66],
+    [659,0.22],[784,0.22],[880,0.22],[784,0.22],
+    [659,0.22],[523,0.22],[587,0.22],[659,0.44],
+    [784,0.22],[659,0.22],[523,0.88],
+  ];
+  const note=(f,d,t)=>{
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(master);
+    o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(0.0,t);
+    g.gain.linearRampToValueAtTime(0.26,t+0.02);
+    g.gain.setTargetAtTime(0.0,t+d*0.65,0.07);
+    o.start(t);o.stop(t+d+0.1);
+  };
+  const loop=()=>{
+    if(!playing)return;
+    let t=ctx.currentTime+0.05;
+    MEL.forEach(([f,d])=>{note(f,d,t);t+=d;});
+    tid=setTimeout(loop,(t-ctx.currentTime-0.04)*1000);
+  };
+  return{
+    start(){
+      if(!ctx){
+        ctx=new(window.AudioContext||window.webkitAudioContext)();
+        master=ctx.createGain();master.gain.value=0.16;master.connect(ctx.destination);
+      }
+      if(ctx.state==='suspended')ctx.resume();
+      if(!playing){playing=true;loop();}
+    },
+    stop(){
+      playing=false;clearTimeout(tid);
+      if(master){master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(0,ctx.currentTime,0.2);}
+      setTimeout(()=>{if(master&&!playing)master.gain.value=0.16;},600);
+    },
+    toggle(on){on?this.start():this.stop();},
+  };
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   Constants
+═══════════════════════════════════════════════════════════ */
+const Q_NORMAL=10,Q_HARD=8,Q_SPEED=6;
+
+const LEVELS=[
+  {level:1,ops:['+'],        max:9,   base:10,label:'입문',en:'Starter',zh:'入门',es:'Inicio'},
+  {level:2,ops:['+','-'],    max:10,  base:12,label:'초급',en:'Easy',   zh:'初级',es:'Fácil'},
+  {level:3,ops:['+','-'],    max:20,  base:15,label:'중급',en:'Medium', zh:'中级',es:'Medio'},
+  {level:4,ops:['+','-','×'],max:20,  base:20,timesMax:5,label:'고급',en:'Hard',zh:'高级',es:'Difícil'},
+  {level:5,ops:['+','-','×','÷'],max:50, base:28,label:'도전',en:'Expert',zh:'挑战',es:'Experto'},
+  {level:6,ops:['+','-','×','÷'],max:100,base:38,label:'천재',en:'Genius',zh:'天才',es:'Genio'},
+];
+
+// Lv.7 이상 무한 레벨 이름
+const INF_LABELS={
+  ko:['초월','전설','신화','반신','신','우주신','∞신'],
+  en:['Legend','Master','Supreme','Divine','God','Cosmic','∞'],
+  zh:['超越','传奇','神话','半神','神','宇宙神','∞'],
+  es:['Leyenda','Maestro','Supremo','Divino','Dios','Cósmico','∞'],
+};
+
+// 어떤 레벨이든 설정값 반환 (Lv.7+는 동적 생성)
+const getLvCfg=lv=>{
+  if(lv<=5)return LEVELS[lv];
+  const x=lv-5; // 천재 이후 단계 수
+  return{
+    ops:['+','-','×','÷'],
+    max:Math.min(100+x*50,9999),      // 숫자 범위 증가 (최대 9999)
+    timesMax:Math.min(9+x*2,99),       // 곱하기 범위 증가
+    base:38+x*10,                      // 기본 점수 증가
+  };
+};
+
+// 타이머: 레벨 7부터 0.5초씩 감소, 최소 4초
+const getQTimer=(mId,lv)=>{
+  const base=MODES[mId]?.qt||Q_NORMAL;
+  if(lv<=5)return base;
+  return Math.max(base-(lv-5)*0.5,4);
+};
+
+// 레벨 이름 (모든 언어 지원)
+const lvLabel=(lv,l)=>{
+  if(lv<=5){const d=LEVELS[lv];return l==='ko'?d.label:l==='zh'?d.zh:l==='es'?d.es:d.en;}
+  const idx=Math.min(lv-6,(INF_LABELS[l||'ko']||INF_LABELS.en).length-1);
+  return(INF_LABELS[l||'ko']||INF_LABELS.en)[idx];
+};
+
+const LC={
+  ko:{name:'한국어',   sub:'Korean',  flag:'🇰🇷',vl:'ko-KR',pitch:2.0,rate:1.9},
+  en:{name:'English',  sub:'영어',    flag:'🇺🇸',vl:'en-US',pitch:2.0,rate:1.9},
+  zh:{name:'中文',     sub:'Mandarin',flag:'🇨🇳',vl:'zh-CN',pitch:1.9,rate:1.9},
+  es:{name:'Español',  sub:'Spanish', flag:'🇪🇸',vl:'es-ES',pitch:2.0,rate:1.9},
+};
+
+const OPW={
+  ko:{'+':'더하기','-':'빼기','×':'곱하기','÷':'나누기'},
+  en:{'+':'plus',   '-':'minus','×':'times', '÷':'divided by'},
+  zh:{'+':'加',     '-':'减',   '×':'乘以',  '÷':'除以'},
+  es:{'+':'más',    '-':'menos','×':'por',   '÷':'entre'},
+};
+
+/* ═══════════════════════════════════════════════════════════
+   Feedback phrases
+═══════════════════════════════════════════════════════════ */
+const PH={
+  cSpeak:{
+    ko:['정답이에요!','맞았어요!','훌륭해요!','완벽해요!','대단해요!','최고예요!','브라보!'],
+    en:['Correct!','Great job!','Awesome!','Perfect!','Amazing!','Excellent!','Wonderful!'],
+    zh:['正确！','答对了！','太棒了！','完美！','厉害！','真棒！','好极了！'],
+    es:['¡Correcto!','¡Muy bien!','¡Perfecto!','¡Increíble!','¡Excelente!','¡Fantástico!'],
+  },
+  cUI:{
+    ko:['정답이에요! 🎉','맞았어요! ⭐','훌륭해요! 🌟','완벽해요! 💯','대단해요! 🏆','최고예요! 👑'],
+    en:['Correct! 🎉','Great job! ⭐','Awesome! 🌟','Perfect! 💯','Amazing! 🏆','Excellent! 👑'],
+    zh:['正确！🎉','答对了！⭐','太棒了！🌟','完美！💯','厉害！🏆','真棒！👑'],
+    es:['¡Correcto! 🎉','¡Muy bien! ⭐','¡Perfecto! 💯','¡Increíble! 🏆','¡Excelente! 🌟'],
+  },
+  wSpeak:{
+    ko:['틀렸어요!','아쉬워요!','다시 해봐요!','조금만 더 생각해요!'],
+    en:['Wrong!','Not quite!','Try again!','Almost!'],
+    zh:['错了！','差一点！','再试试！','加油！'],
+    es:['¡Incorrecto!','¡Casi!','¡Inténtalo!','¡Ánimo!'],
+  },
+  wUI:{
+    ko:['틀렸어요! 😢','아쉬워요! 😅','다시 해봐요! 🤔'],
+    en:['Wrong! 😢','Not quite! 😅','Try again! 🤔'],
+    zh:['错了！😢','差一点！😅','再试试！🤔'],
+    es:['¡Incorrecto! 😢','¡Casi! 😅','¡Inténtalo! 🤔'],
+  },
+  to:{
+    ko:['시간이 다 됐어요!','더 빨리 해봐요!'],
+    en:["Time's up!",'Be faster!'],
+    zh:['时间到了！','快一点！'],
+    es:['¡Tiempo!','¡Más rápido!'],
+  },
+  over:{
+    ko:['수고했어요! 다시 도전해봐요!','정말 잘했어요!'],
+    en:['Good effort! Try again!','Well done!'],
+    zh:['辛苦了！再来一次！','做得很好！'],
+    es:['¡Buen esfuerzo!','¡Bien hecho!'],
+  },
+  up:{
+    ko:['레벨 올라갔어요! 대단해요!','축하해요! 다음 레벨!'],
+    en:['Level up! Amazing!','Woohoo! Next level!'],
+    zh:['升级了！太棒了！','恭喜升级！'],
+    es:['¡Subiste de nivel!','¡Felicidades!'],
+  },
+};
+const rnd=(o,l)=>o[l][Math.floor(Math.random()*o[l].length)];
+
+/* ── UI 전체 번역 ── */
+const T={
+  score:   {ko:'점수',    en:'Score',  zh:'得分',  es:'Pts'},
+  level:   {ko:'레벨',    en:'Level',  zh:'等级',  es:'Nivel'},
+  lives:   {ko:'남은기회', en:'Lives',  zh:'剩余机会',es:'Vidas'},
+  timeL:   {ko:'남은시간', en:'Time',   zh:'时间',  es:'Tiempo'},
+  home:    {ko:'홈',      en:'Home',   zh:'首页',  es:'Inicio'},
+  replay:  {ko:'다시 듣기',en:'Replay', zh:'再听',  es:'Repetir'},
+  readV:   {ko:'음성으로 읽어줘요',en:'Tap to hear',zh:'点击朗读',es:'Escuchar'},
+  listen:  {ko:'잘 들어봐요!',en:'Listen carefully!',zh:'认真听！',es:'¡Escucha!'},
+  toLvUp:  (n,l)=>({ko:`레벨업까지 ${n}개`,en:`${n} to level up`,zh:`距升级还差${n}题`,es:`${n} para subir`}[l]),
+  lvUpMsg: (lv,lb,l)=>({ko:`🎉 레벨 업! Lv.${lv} ${lb}! 🎉`,en:`🎉 Level Up! Lv.${lv}! 🎉`,zh:`🎉 升级了！Lv.${lv}！🎉`,es:`🎉 ¡Nivel ${lv}! 🎉`}[l]),
+  wrongA:  (a,l)=>({ko:`정답: ${a}`,en:`Answer: ${a}`,zh:`答案: ${a}`,es:`Resp: ${a}`}[l]),
+  comboT:  (n,l)=>({ko:`🔥 ${n}콤보!`,en:`🔥 ${n} Combo!`,zh:`🔥 ${n}连击！`,es:`🔥 ¡${n} combo!`}[l]),
+  secT:    (n,l)=>({ko:`${n}초`,en:`${n}s`,zh:`${n}秒`,es:`${n}s`}[l]),
+  gameEnd: {ko:'게임 종료! 🎉',en:'Game Over! 🎉',zh:'游戏结束！🎉',es:'¡Fin del juego! 🎉'},
+  retry:   {ko:'🔄 다시 도전!',en:'🔄 Try Again!',zh:'🔄 再来一次！',es:'🔄 ¡Otra vez!'},
+  goHome:  {ko:'🏠 홈으로',en:'🏠 Home',zh:'🏠 首页',es:'🏠 Inicio'},
+  resLbls: (l)=>[
+    [l==='ko'?'🎯 점수':l==='en'?'🎯 Score':l==='zh'?'🎯 得分':'🎯 Pts'],
+    [l==='ko'?'✅ 정답':l==='en'?'✅ Correct':l==='zh'?'✅ 正确':'✅ Acierto'],
+    [l==='ko'?'📊 정확도':l==='en'?'📊 Accuracy':l==='zh'?'📊 准确率':'📊 Precisión'],
+    [l==='ko'?'📈 레벨':l==='en'?'📈 Level':l==='zh'?'📈 等级':'📈 Nivel'],
+    [l==='ko'?'🔥 콤보':l==='en'?'🔥 Combo':l==='zh'?'🔥 连击':'🔥 Combo'],
+    [l==='ko'?'📝 총':l==='en'?'📝 Total':l==='zh'?'📝 总计':'📝 Total'],
+  ],
+};
+
+/* ═══════════════════════════════════════════════════════════
+   TTS  —  1순위: Google 번역 TTS (진짜 원어민 발음)
+           2순위: Web Speech API (기기 TTS 폴백)
+   Google TTS: 구글 번역 앱과 동일한 엔진. 기기 설치 불필요.
+               한국어·영어·중국어보통화·스페인어 모두 원어민 품질.
+═══════════════════════════════════════════════════════════ */
+
+// ── 목소리 캐시 (Chrome은 voiceschanged 전까지 빈 배열 반환) ──
+let _voices=[];
+let _userSpd=1.22;  // 고정 속도 1.22x (1.15의 7% 향상)
+const refreshVoices=()=>{
+  const vs=window.speechSynthesis.getVoices();
+  if(vs.length)_voices=vs;
+  return _voices;
+};
+
+// Google TTS 언어 코드
+const GTTS={
+  ko:{tl:'ko'},
+  en:{tl:'en'},
+  zh:{tl:'zh-CN'}, // 보통화(Mandarin) 직접 지정
+  es:{tl:'es'},
+};
+
+let _curAudio=null;
+let _gWorking=null; // null=미확인, true=성공, false=실패
+
+/* Google 번역 TTS — 기기 독립적인 원어민 발음 */
+const googleTTS=(txt,lang)=>{
+  const tl=GTTS[lang]?.tl||'en';
+  // ttsspeed 제거 — 일부 환경에서 URL 오류 유발
+  const url=`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(txt)}&tl=${tl}&client=tw-ob&ttsspeed=${Math.min(_userSpd*0.8,1.44).toFixed(2)}`;
+  if(_curAudio){_curAudio.pause();_curAudio.src='';}
+  const a=new Audio(url);
+  _curAudio=a;
+  a.volume=1;
+  return new Promise((res,rej)=>{
+    a.oncanplaythrough=()=>a.play().then(res).catch(rej);
+    a.onerror=rej;               // 오디오 로드 실패도 감지
+    a.onended=()=>{_curAudio=null;};
+    setTimeout(()=>rej(new Error('timeout')),4000); // 4초 내 응답 없으면 폴백
+  });
+};
+
+/* Web Speech API 폴백 */
+const isCanto=v=>/HK/i.test(v.lang)||/sin.ji|cantonese|yue/i.test(v.name);
+const getVoice=lc=>{
+  const vs=_voices.length?_voices:refreshVoices(); // 캐시 우선
+  if(!vs.length)return null;
+  const lg=lc.split('-')[0];
+  if(lc==='zh-CN'){
+    return vs.find(v=>v.lang==='zh-CN'&&!isCanto(v)&&/google/i.test(v.name))||
+           vs.find(v=>v.lang==='zh-CN'&&!isCanto(v))||
+           vs.find(v=>v.lang.startsWith('zh')&&!isCanto(v))||null;
+  }
+  // Google 목소리 우선 (Chrome: "Google US English", "Google 한국어" 등)
+  return vs.find(v=>v.lang===lc&&/google/i.test(v.name))||
+         vs.find(v=>v.lang===lc)||
+         vs.find(v=>v.lang.startsWith(lg))||null;
+};
+const wbSay=(txt,lang)=>{
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const c=LC[lang];
+  const go=()=>{
+    const v=getVoice(c.vl);
+    const u=new SpeechSynthesisUtterance(txt);
+    u.lang=c.vl; u.pitch=1.3; u.rate=_userSpd; u.volume=1;
+    if(v)u.voice=v;
+    setTimeout(()=>window.speechSynthesis.speak(u),60);
+  };
+  // 캐시에 목소리 있으면 바로, 없으면 로드 대기
+  if(_voices.length){go();}
+  else{
+    const h=()=>{refreshVoices();window.speechSynthesis.removeEventListener('voiceschanged',h);go();};
+    window.speechSynthesis.addEventListener('voiceschanged',h);
+    setTimeout(()=>{refreshVoices();go();},1000);
+  }
+};
+
+/* 통합 say() — Google TTS 우선, 실패 시 Web Speech */
+const say=(txt,lang)=>{
+  if(_gWorking===false||!navigator.onLine){wbSay(txt,lang);return;}
+  googleTTS(txt,lang)
+    .then(()=>{_gWorking=true;})
+    .catch(()=>{_gWorking=false;wbSay(txt,lang);});
+};
+
+/* sayAsync — 음성이 완전히 끝날 때까지 기다리는 버전 (듣고맞추기 모드용) */
+const wbSayAsync=(txt,lang)=>new Promise(resolve=>{
+  if(!window.speechSynthesis){resolve();return;}
+  window.speechSynthesis.cancel();
+  const c=LC[lang];
+  const go=()=>{
+    const v=getVoice(c.vl);
+    const u=new SpeechSynthesisUtterance(txt);
+    u.lang=c.vl;u.pitch=1.3;u.rate=_userSpd;u.volume=1;
+    if(v)u.voice=v;
+    u.onend=resolve;u.onerror=resolve;
+    setTimeout(()=>window.speechSynthesis.speak(u),60);
+  };
+  _voices.length?go():(()=>{
+    const h=()=>{refreshVoices();window.speechSynthesis.removeEventListener('voiceschanged',h);go();};
+    window.speechSynthesis.addEventListener('voiceschanged',h);
+    setTimeout(()=>{refreshVoices();go();},800);
+  })();
+});
+
+const sayAsync=(txt,lang)=>new Promise(resolve=>{
+  if(_gWorking===false||!navigator.onLine){wbSayAsync(txt,lang).then(resolve);return;}
+  const tl=GTTS[lang]?.tl||'en';
+  const url=`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(txt)}&tl=${tl}&client=tw-ob&ttsspeed=${Math.min(_userSpd*0.8,1.44).toFixed(2)}`;
+  if(_curAudio){_curAudio.pause();_curAudio.src='';}
+  const a=new Audio(url);_curAudio=a;a.volume=1;
+  const done=()=>{_curAudio=null;resolve();};
+  a.onended=done;
+  a.onerror=()=>{_gWorking=false;wbSayAsync(txt,lang).then(resolve);};
+  a.oncanplaythrough=()=>a.play().then(()=>{_gWorking=true;}).catch(()=>{_gWorking=false;wbSayAsync(txt,lang).then(resolve);});
+  setTimeout(resolve,8000); // 최대 8초 안전 타임아웃
+});
+
+/* 언어별 생동감 있는 질문 문장 */
+const Q_STARTERS={
+  ko:['자!','빠르게!','잘 들어봐요!','문제!','집중!'],
+  en:['Quick!','Ready?','Here we go!','Solve it!','Listen up!'],
+  zh:['小朋友！','来答题！','想一想！','快点！','加油！'],
+  es:['¡Vamos!','¡Rápido!','¡Escucha!','¡Adelante!','¡A pensar!'],
+};
+const qSentence=(a,op,b,l)=>{
+  const w=OPW[l][op];
+  const s=Q_STARTERS[l][Math.floor(Math.random()*Q_STARTERS[l].length)];
+  // 한국어: 쉼표로 끊기 → TTS가 각 숫자 따로 명확하게 읽음 (두 번째 숫자 묵음 버그 수정)
+  if(l==='ko')return`${s} ${a} ${w} ${b}. 얼마일까요?`;
+  if(l==='en')return`${s} What is ${a} ${w} ${b}?`;
+  if(l==='zh')return`${s} ${a}，${w}，${b}，等于多少呢？`;
+  return`${s} ¿Cuánto es ${a} ${w} ${b}?`;
+};
+
+/* ═══════════════════════════════════════════════════════════
+   Question generator
+═══════════════════════════════════════════════════════════ */
+const genQ=lv=>{
+  const c=getLvCfg(lv);  // 무한 레벨 지원
+  const op=c.ops[Math.floor(Math.random()*c.ops.length)];
+  let a,b,ans;
+  if(op==='+'){a=Math.floor(Math.random()*c.max)+1;b=Math.floor(Math.random()*c.max)+1;ans=a+b;}
+  else if(op==='-'){a=Math.floor(Math.random()*c.max)+2;b=Math.floor(Math.random()*(a-1))+1;ans=a-b;}
+  else if(op==='×'){const m=c.timesMax||9;a=Math.floor(Math.random()*m)+2;b=Math.floor(Math.random()*m)+2;ans=a*b;}
+  else{b=Math.floor(Math.random()*8)+2;ans=Math.floor(Math.random()*8)+2;a=b*ans;}
+  const s=new Set([ans]);let t=0;
+  while(s.size<4&&t<100){t++;const w=ans+(Math.floor(Math.random()*14)-7);if(w!==ans&&w>=0&&!s.has(w))s.add(w);}
+  while(s.size<4)s.add(ans+s.size*6+4);
+  return{a,op,b,answer:ans,choices:[...s].sort(()=>Math.random()-0.5)};
+};
+
+/* ═══════════════════════════════════════════════════════════
+   Mode configs
+═══════════════════════════════════════════════════════════ */
+const MODES={
+  normal:{id:'normal',icon:'🌈',title:{ko:'보통 모드',en:'Normal',zh:'普通',es:'Normal'},
+    lives:5,qt:Q_NORMAL,startLv:0,
+    desc:{ko:'더하기 빼기 · 5번 기회',en:'Add & Subtract · 5 lives',zh:'加减法 · 5条命',es:'Suma/Resta · 5 vidas'},
+    badge:'FREE',bc:'#22C55E',
+  },
+  hard:{id:'hard',icon:'🔥',title:{ko:'하드 모드',en:'Hard',zh:'困难',es:'Difícil'},
+    lives:3,qt:Q_HARD,startLv:3,
+    desc:{ko:'곱하기 나누기 · 3번 기회',en:'Mult & Divide · 3 lives',zh:'乘除法 · 3条命',es:'Mult/Div · 3 vidas'},
+    badge:'🔥도전',bc:'#EF4444',
+  },
+  time:{id:'time',icon:'⏱️',title:{ko:'타임 어택',en:'Time Attack',zh:'限时',es:'Contra Reloj'},
+    lives:99,qt:Q_NORMAL,startLv:0,
+    desc:{ko:'60초 안에 최대한!',en:'Max score in 60s!',zh:'60秒最高分！',es:'¡Máx en 60s!'},
+    badge:'FREE',bc:'#3B82F6',
+  },
+  listen:{id:'listen',icon:'👂',title:{ko:'듣고 맞추기',en:'Listen First',zh:'听音答题',es:'Escucha'},
+    lives:5,qt:Q_NORMAL,startLv:0,
+    desc:{ko:'소리 듣고 숫자 확인!',en:'Hear it, then see it!',zh:'先听后看！',es:'¡Escucha primero!'},
+    badge:'NEW',bc:'#8B5CF6',
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   Colours
+═══════════════════════════════════════════════════════════ */
+const BG={
+  sky:   'linear-gradient(145deg,#22D3EE,#0EA5E9)',
+  green: 'linear-gradient(145deg,#4ADE80,#16A34A)',
+  red:   'linear-gradient(145deg,#F87171,#DC2626)',
+  amber: 'linear-gradient(145deg,#FCD34D,#F59E0B)',
+};
+const STARS_CHARS=['⭐','🌟','✨','💫','🎉','🌸'];
+const STARS_COLS=['#FFD700','#FF6B6B','#4ECDC4','#96E6A1','#F093FB','#45B7D1','#FF9A9E'];
+
+/* ═══════════════════════════════════════════════════════════
+   UI Components
+═══════════════════════════════════════════════════════════ */
+function NumBox({val,color}){
+  const n=String(val).length;
+  const fs=n>3?18:n>2?24:32;
+  return(
+    <div style={{minWidth:60,height:60,background:'#FFFFFF',borderRadius:16,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 8px',boxShadow:'0 4px 14px rgba(0,0,0,0.15)',border:'3px solid rgba(255,255,255,1)'}}>
+      <span style={{fontSize:fs,fontWeight:900,color:color||'#0369A1',fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{val}</span>
+    </div>
+  );
+}
+function OpBox({op}){
+  const col={'+':'#3B82F6','-':'#F43F5E','×':'#A855F7','÷':'#10B981'}[op]||'#F59E0B';
+  return(
+    <div style={{width:44,height:44,background:col,borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:`0 3px 10px ${col}66`}}>
+      <span style={{fontSize:24,fontWeight:900,color:'white',fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{op}</span>
+    </div>
+  );
+}
+function TimerBar({val,max,lang}){
+  const pct=(val/max)*100;
+  const col=pct>55?'#22C55E':pct>28?'#EAB308':'#EF4444';
+  const urgent=pct<=28;
+  const secLabel=T.secT(val,lang||'ko');
+  return(
+    <div style={{width:'100%'}}>
+      <div style={{background:'rgba(0,0,0,0.18)',borderRadius:20,height:26,overflow:'hidden',position:'relative',boxShadow:'inset 0 2px 6px rgba(0,0,0,0.18)'}}>
+        <div style={{position:'absolute',right:0,top:0,bottom:0,width:`${pct}%`,background:col,transition:'width 1s linear,background 0.4s',animation:urgent?'timerWarn 0.44s ease-in-out infinite':'none'}}/>
+        <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,fontSize:13,fontWeight:900,color:'white',textShadow:'0 1px 4px rgba(0,0,0,0.6)',fontFamily:"'Nunito',sans-serif"}}>⏰ {secLabel}</div>
+      </div>
+    </div>
+  );
+}
+function Hearts({lives,max}){
+  const sz=max>=5?17:22;
+  return(
+    <div style={{display:'flex',gap:2,flexWrap:'wrap',justifyContent:'center'}}>
+      {Array.from({length:max}).map((_,i)=>(
+        <span key={i} style={{fontSize:sz,filter:i<lives?'none':'grayscale(1)',opacity:i<lives?1:0.2,transition:'all 0.3s'}}>❤️</span>
+      ))}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   App
+═══════════════════════════════════════════════════════════ */
+function App(){
+  const [scr,setScr]=useState('home');
+  const [lang,setLang]=useState('ko');
+  const [mode,setMode]=useState(null);
+  const [bgmOn,setBgmOn]=useState(false);
+  const [showDiag,setShowDiag]=useState(false);
+  const [q,setQ]=useState(null);
+  const [score,setScore]=useState(0);
+  const [lives,setLives]=useState(5);
+  const [timeLft,setTimeLft]=useState(60);
+  const [qTime,setQTime]=useState(Q_NORMAL);
+  const [lv,setLv]=useState(0);
+  const [corr,setCorr]=useState(0);
+  const [tot,setTot]=useState(0);
+  const [combo,setCombo]=useState(0);
+  const [maxCombo,setMaxCombo]=useState(0);
+  const [fbTy,setFbTy]=useState(null);
+  const [fbTx,setFbTx]=useState('');
+  const [selA,setSelA]=useState(null);
+  const [lockd,setLockd]=useState(false);
+  const [lvAnim,setLvAnim]=useState(false);
+  const [stars,setStars]=useState([]);
+  const [sAnim,setSAnim]=useState(null);
+  const [shake,setShake]=useState(false);
+  const [lstPh,setLstPh]=useState(false);
+  const [bgKey,setBgKey]=useState('sky');
+
+  const gT=useRef(null),qT=useRef(null),lsT=useRef(null);
+  const qTR=useRef(Q_NORMAL),lvR=useRef(0),livR=useRef(5),mR=useRef(null),lR=useRef('ko');
+  const lkR=useRef(false),scR=useRef(0),crR=useRef(0),ttR=useRef(0),cbR=useRef(0),mcR=useRef(0),qR=useRef(null);
+
+  useEffect(()=>{
+    // 목소리 캐시 — Chrome은 voiceschanged 전에 빈 배열 반환하므로 다중 재시도
+    refreshVoices();
+    window.speechSynthesis.addEventListener('voiceschanged',refreshVoices);
+    [200,500,1000,2000,4000].forEach(t=>setTimeout(refreshVoices,t));
+    return()=>window.speechSynthesis.removeEventListener('voiceschanged',refreshVoices);
+  },[]);
+  useEffect(()=>()=>{clearInterval(gT.current);clearInterval(qT.current);clearTimeout(lsT.current);},[]);
+
+  const spawnS=()=>{
+    const s=[...Array(12)].map((_,i)=>({id:Date.now()+i,x:Math.random()*84+6,col:STARS_COLS[i%7],sz:Math.random()*18+13,ch:STARS_CHARS[Math.floor(Math.random()*6)]}));
+    setStars(s);setTimeout(()=>setStars([]),1200);
+  };
+  const stopQ=()=>clearInterval(qT.current);
+
+  const handleTO=useCallback(()=>{
+    if(lkR.current)return;
+    lkR.current=true;setLockd(true);setSelA('to');
+    setFbTy('wrong');setFbTx(rnd(PH.wUI,lR.current));
+    say(rnd(PH.to,lR.current),lR.current);
+    setBgKey('red');setShake(true);setTimeout(()=>setShake(false),520);
+    cbR.current=0;setCombo(0);ttR.current++;setTot(ttR.current);
+    if(mR.current!=='time'){
+      livR.current--;setLives(livR.current);
+      if(livR.current<=0){setTimeout(()=>{say(rnd(PH.over,lR.current),lR.current);setScr('result');},1800); // 마지막 피드백 후 결과화면return;}
+    }
+    setTimeout(()=>next(lvR.current),2000); // 피드백 음성 완료 대기
+  },[]);
+
+  const next=useCallback(lvidx=>{
+    clearTimeout(lsT.current);
+    const nq=genQ(lvidx);qR.current=nq;
+    const mc=MODES[mR.current];
+    const qt=getQTimer(mR.current,lvidx); // 레벨별 동적 타이머
+    setQ(nq);setSelA(null);setFbTy(null);setFbTx('');
+    setLockd(false);lkR.current=false;
+    setBgKey('sky');qTR.current=qt;setQTime(qt);stopQ();
+    const startTmr=()=>{
+      qT.current=setInterval(()=>{
+        qTR.current=Math.max(0,qTR.current-1);
+        setQTime(qTR.current);
+        if(qTR.current<=0){clearInterval(qT.current);handleTO();}
+      },1000);
+    };
+    if(mR.current==='listen'){
+      setLstPh(true);
+      setTimeout(()=>{
+        const txt=qSentence(nq.a,nq.op,nq.b,lR.current);
+        // 음성이 완전히 끝난 후 숫자 공개 + 타이머 시작
+        sayAsync(txt,lR.current).then(()=>{
+          clearTimeout(lsT.current);
+          lsT.current=setTimeout(()=>{setLstPh(false);startTmr();},500);
+        });
+        // 안전 폴백: 최대 9초 후 강제 공개
+        lsT.current=setTimeout(()=>{setLstPh(false);startTmr();},9000);
+      },300);
+    }else{
+      setLstPh(false);
+      setTimeout(()=>say(qSentence(nq.a,nq.op,nq.b,lR.current),lR.current),350);
+      startTmr();
+    }
+  },[handleTO]);
+
+  const startGame=m=>{
+    clearInterval(gT.current);stopQ();clearTimeout(lsT.current);
+    const mc=MODES[m];
+    mR.current=m;lvR.current=mc.startLv;livR.current=mc.lives;
+    scR.current=0;crR.current=0;ttR.current=0;cbR.current=0;mcR.current=0;lkR.current=false;
+    setMode(m);setScore(0);setLives(mc.lives);setTimeLft(60);setLv(mc.startLv);
+    setCorr(0);setTot(0);setCombo(0);setMaxCombo(0);
+    setFbTy(null);setFbTx('');setSelA(null);setLockd(false);
+    setLvAnim(false);setStars([]);setSAnim(null);setBgKey('sky');setLstPh(false);
+    setScr('game');
+    if(m==='time'){
+      gT.current=setInterval(()=>{
+        setTimeLft(p=>{
+          if(p<=1){clearInterval(gT.current);stopQ();say(rnd(PH.over,lR.current),lR.current);setScr('result');return 0;}
+          return p-1;
+        });
+      },1000);
+    }
+    if(bgmOn)BGM.start();
+    setTimeout(()=>next(mc.startLv),200);
+  };
+
+  const handleA=c=>{
+    if(lkR.current)return;
+    stopQ();lkR.current=true;setLockd(true);setSelA(c);
+    const ok=c===qR.current?.answer;
+    ttR.current++;setTot(ttR.current);
+    if(ok){
+      const nc=cbR.current+1;cbR.current=nc;setCombo(nc);
+      if(nc>mcR.current){mcR.current=nc;setMaxCombo(nc);}
+      const cfg=getLvCfg(lvR.current);  // 무한 레벨 점수 계산
+      const sb=qTR.current>=10?12:qTR.current>=7?6:qTR.current>=4?3:0;
+      const cm=nc>=10?2.2:nc>=5?1.6:nc>=3?1.25:1;
+      // 레벨 7+ 추가 배율: 레벨이 높을수록 점수 배율 증가
+      const infBonus=lvR.current>5?1+(lvR.current-5)*0.3:1;
+      const e=Math.round((cfg.base+sb)*cm*infBonus);
+      scR.current+=e;setScore(scR.current);
+      setSAnim(`+${e}`);setTimeout(()=>setSAnim(null),950);
+      crR.current++;setCorr(crR.current);
+      setFbTy('c');setFbTx(rnd(PH.cUI,lR.current));
+      setBgKey('green');spawnS();
+      // 선택한 숫자를 먼저 읽고 정답 피드백 — "5! 정답이에요!"
+      say(`${c}! ${rnd(PH.cSpeak,lR.current)}`,lR.current);
+      let nlv=lvR.current;
+      if(crR.current%5===0){  // 레벨 상한 제거 — 무한 레벨
+        nlv++;lvR.current=nlv;setLv(nlv);setLvAnim(true);
+        setTimeout(()=>say(rnd(PH.up,lR.current),lR.current),600);
+        setTimeout(()=>setLvAnim(false),2200);
+      }
+      setTimeout(()=>next(nlv),2000); // 피드백 음성 완료 대기
+    }else{
+      setBgKey('red');setShake(true);setTimeout(()=>setShake(false),520);
+      cbR.current=0;setCombo(0);
+      setFbTy('w');setFbTx(rnd(PH.wUI,lR.current));
+      say(rnd(PH.wSpeak,lR.current),lR.current);
+      if(mR.current!=='time'){
+        livR.current--;setLives(livR.current);
+        if(livR.current<=0){setTimeout(()=>{say(rnd(PH.over,lR.current),lR.current);setScr('result');},1800); // 마지막 피드백 후 결과화면return;}
+      }
+      setTimeout(()=>next(lvR.current),2000); // 피드백 음성 완료 대기
+    }
+  };
+
+  const goHome=()=>{clearInterval(gT.current);stopQ();clearTimeout(lsT.current);BGM.stop();setBgmOn(false);setScr('home');};
+  const toggleBGM=()=>{const n=!bgmOn;setBgmOn(n);BGM.toggle(n);};
+  const mi=mode?MODES[mode]:null;
+  const acc=ttR.current>0?Math.round(crR.current/ttR.current*100):0;
+  const qMax=mi?mi.qt:Q_NORMAL;
+
+  /* ── HOME ─────────────────────────────────────────────── */
+  if(scr==='home')return(
+    <div style={{minHeight:'100vh',
+      background:'linear-gradient(135deg,#FF6B6B,#FF8E53,#FFD93D,#6BCB77,#4ECDC4)',
+      backgroundSize:'300% 300%',animation:'homeBG 8s ease infinite',
+      display:'flex',flexDirection:'column',alignItems:'center',
+      padding:'18px 14px 26px',fontFamily:"'Nunito',sans-serif",position:'relative',overflow:'hidden'}}>
+
+      {/* Floating deco */}
+      {[{e:'☀️',s:40,st:{top:'3%',right:'8%',animation:'floatA 4s ease-in-out infinite'}},
+        {e:'🌈',s:34,st:{top:'14%',left:'3%',animation:'floatB 3.5s ease-in-out infinite'}},
+        {e:'⭐',s:28,st:{top:'38%',right:'4%',animation:'floatC 3s ease-in-out infinite'}},
+        {e:'🎈',s:30,st:{bottom:'28%',left:'4%',animation:'floatA 5s ease-in-out infinite'}},
+        {e:'🌸',s:26,st:{bottom:'14%',right:'6%',animation:'floatB 4.5s ease-in-out infinite'}},
+        {e:'☁️',s:36,st:{bottom:'42%',left:'6%',animation:'floatC 6s ease-in-out infinite'}},
+      ].map((d,i)=>(
+        <div key={i} style={{position:'fixed',fontSize:d.s,...d.st,pointerEvents:'none',zIndex:0,filter:'drop-shadow(0 2px 6px rgba(0,0,0,0.15))'}}>{d.e}</div>
+      ))}
+
+      {/* BGM + 음성진단 버튼 */}
+      <div style={{position:'absolute',top:14,right:14,zIndex:10,display:'flex',gap:6}}>
+        <button onClick={()=>setShowDiag(true)}
+          style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 10px',color:'white',fontSize:11,fontWeight:900,backdropFilter:'blur(6px)'}}>
+          🔍 음성
+        </button>
+        <button onClick={toggleBGM} style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 12px',color:'white',fontSize:12,fontWeight:900,backdropFilter:'blur(6px)'}}>
+          {bgmOn?'🎵 ON':'🔇 OFF'}
+        </button>
+      </div>
+
+      {/* 음성 진단 패널 */}
+      {showDiag&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.65)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+          <div style={{background:'white',borderRadius:22,padding:20,width:'100%',maxWidth:400,maxHeight:'85vh',overflowY:'auto'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+              <span style={{fontSize:17,fontWeight:900,color:'#1e1b4b'}}>🔍 음성 진단</span>
+              <button onClick={()=>setShowDiag(false)} style={{background:'#f3f4f6',border:'none',borderRadius:10,padding:'6px 12px',fontSize:13,fontWeight:900,color:'#374151'}}>닫기 ✕</button>
+            </div>
+
+            {/* Google TTS 상태 */}
+            <div style={{background:_gWorking===true?'#dcfce7':_gWorking===false?'#fee2e2':'#fef9c3',borderRadius:12,padding:'10px 14px',marginBottom:10}}>
+              <div style={{fontSize:12,fontWeight:900,color:_gWorking===true?'#166534':_gWorking===false?'#991b1b':'#854d0e',marginBottom:3}}>
+                Google TTS (원어민 발음 엔진)
+              </div>
+              <div style={{fontSize:13,fontWeight:700,color:_gWorking===true?'#15803d':_gWorking===false?'#dc2626':'#b45309'}}>
+                {_gWorking===true?'✅ 정상 작동 중 — 원어민 발음':
+                 _gWorking===false?'❌ 차단됨 → Web Speech 사용 중':
+                 '⏳ 아직 미확인 (언어 버튼 눌러 테스트)'}
+              </div>
+            </div>
+
+            {/* 언어별 목소리 확인 */}
+            <div style={{fontSize:12,fontWeight:900,color:'#374151',marginBottom:6}}>언어별 잡힌 목소리 (Web Speech)</div>
+            {Object.entries(LC).map(([k,v])=>{
+              const voice=getVoice(v.vl);
+              const ok=voice&&voice.lang.startsWith(v.vl.split('-')[0]);
+              return(
+                <div key={k} style={{display:'flex',alignItems:'center',gap:8,background:'#f9fafb',borderRadius:10,padding:'8px 12px',marginBottom:6}}>
+                  <span style={{fontSize:18}}>{v.flag}</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:12,fontWeight:700,color:'#111827'}}>{v.name}</div>
+                    <div style={{fontSize:11,color:ok?'#16a34a':'#dc2626'}}>
+                      {voice?`${voice.name} (${voice.lang})`:'목소리 없음 — 폴백'}
+                    </div>
+                  </div>
+                  <button onClick={()=>say(
+                    k==='ko'?'안녕하세요 수학 게임입니다':
+                    k==='en'?'Hello, welcome to math game':
+                    k==='zh'?'你好，欢迎来玩数学游戏':'Hola, bienvenido al juego',k)}
+                    style={{background:'#6366f1',border:'none',borderRadius:8,padding:'5px 10px',color:'white',fontSize:11,fontWeight:900}}>
+                    ▶ 테스트
+                  </button>
+                </div>
+              );
+            })}
+
+            {/* 총 목소리 수 */}
+            <div style={{fontSize:11,color:'#6b7280',textAlign:'center',marginTop:8}}>
+              기기 총 목소리: {_voices.length}개 · 온라인: {navigator.onLine?'✅':'❌'}
+            </div>
+
+            {_gWorking===false&&(
+              <div style={{background:'#fef3c7',borderRadius:12,padding:'10px 14px',marginTop:10,fontSize:12,color:'#92400e',lineHeight:1.6}}>
+                💡 <strong>원어민 발음 활성화 방법</strong><br/>
+                GitHub Pages에 올리면 Google TTS 자동 활성화돼요.<br/>
+                로컬 파일(file://)에서는 보안상 차단될 수 있어요.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Logo */}
+      <div style={{zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',width:'100%',maxWidth:440}}>
+        <div style={{fontSize:64,animation:'bounce 2s ease-in-out infinite',filter:'drop-shadow(0 5px 14px rgba(0,0,0,0.2))'}}>🧮</div>
+        <h1 style={{fontSize:'clamp(22px,6vw,32px)',fontWeight:900,color:'white',margin:'4px 0 2px',
+          textShadow:'0 2px 14px rgba(0,0,0,0.28)',textAlign:'center',
+          fontFamily:"'Fredoka One','Nunito',sans-serif",letterSpacing:0.5}}>수학 천재 게임</h1>
+        <p style={{fontSize:13,color:'rgba(255,255,255,0.95)',margin:'0 0 16px',textAlign:'center',fontWeight:800}}>
+          {lang==='ko'?'🧠 즐겁게 배우는 수학 게임!':lang==='en'?'🧠 Learn Math the Fun Way!':lang==='zh'?'🧠 快乐学数学！':'🧠 ¡Aprende Matemáticas!'}
+        </p>
+
+        {/* ── Language selector ── compact, full name */}
+        <div style={{width:'100%',marginBottom:13}}>
+          <p style={{color:'rgba(255,255,255,0.92)',fontSize:11,textAlign:'center',margin:'0 0 7px',fontWeight:900,letterSpacing:0.5}}>🌍 언어 선택 / LANGUAGE</p>
+          <div style={{display:'flex',gap:6}}>
+            {Object.entries(LC).map(([k,v])=>{
+              const sel=lang===k;
+              const testPhrases={
+                ko:'안녕하세요! 수학 게임을 시작해요!',
+                en:'Hello! Let\'s play math!',
+                zh:'你好！我们来玩数学游戏吧！',
+                es:'¡Hola! ¡Vamos a jugar matemáticas!',
+              };
+              return(
+                <button key={k} onClick={()=>{
+                  setLang(k);lR.current=k;
+                  // 언어 선택 시 목소리 바로 테스트
+                  setTimeout(()=>say(testPhrases[k],k),100);
+                }}
+                  style={{flex:1,background:sel?'white':'rgba(255,255,255,0.22)',
+                    border:`2.5px solid ${sel?'#FFD600':'rgba(255,255,255,0.45)'}`,
+                    borderRadius:14,padding:'8px 3px',
+                    display:'flex',flexDirection:'column',alignItems:'center',gap:2,
+                    transition:'all 0.2s',
+                    boxShadow:sel?'0 0 0 3px rgba(255,214,0,0.45),0 4px 12px rgba(0,0,0,0.12)':'none',
+                    transform:sel?'scale(1.07)':'scale(1)'}}>
+                  <span style={{fontSize:20}}>{v.flag}</span>
+                  <span style={{fontSize:10,fontWeight:900,color:sel?'#92400E':'white',lineHeight:1.1,textAlign:'center'}}>{v.name}</span>
+                  <span style={{fontSize:9,fontWeight:700,color:sel?'#B45309':'rgba(255,255,255,0.75)',lineHeight:1}}>{v.sub}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Mode cards ── 2×2 compact grid */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,width:'100%',marginBottom:12}}>
+          {Object.values(MODES).map(m=>(
+            <button key={m.id} onClick={()=>startGame(m.id)}
+              style={{background:'rgba(255,255,255,0.22)',border:'2px solid rgba(255,255,255,0.45)',
+                borderRadius:18,padding:'11px 10px 10px',color:'white',
+                display:'flex',flexDirection:'column',alignItems:'flex-start',gap:3,
+                textAlign:'left',position:'relative',overflow:'hidden',
+                backdropFilter:'blur(8px)',boxShadow:'0 2px 12px rgba(0,0,0,0.08)'}}>
+              {/* badge */}
+              <span style={{position:'absolute',top:7,right:7,background:m.bc,borderRadius:7,
+                padding:'2px 7px',fontSize:9,fontWeight:900,color:'white',lineHeight:1.4}}>{m.badge}</span>
+              <span style={{fontSize:28,filter:'drop-shadow(0 2px 4px rgba(0,0,0,0.18))'}}>{m.icon}</span>
+              <div style={{fontSize:15,fontWeight:900,fontFamily:"'Fredoka One','Nunito',sans-serif",lineHeight:1.1}}>
+                {m.title[lang]||m.title.ko}
+              </div>
+              <div style={{fontSize:10.5,opacity:0.9,lineHeight:1.35,fontWeight:700}}>
+                {m.desc[lang]||m.desc.ko}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <p style={{color:'rgba(255,255,255,0.7)',fontSize:10.5,textAlign:'center',fontWeight:700}}>
+          🔊 음성 지원 · 4가지 언어 · 6단계 레벨
+        </p>
+      </div>
+    </div>
+  );
+
+  /* ── RESULT ───────────────────────────────────────────── */
+  if(scr==='result'){
+    const medal=score>=900?'🥇':score>=400?'🥈':score>=100?'🥉':'🎖️';
+    const mi2=mi||MODES.normal;
+    const praise=score>=900
+      ?{ko:'완전 천재! 대박이에요! 🏆',en:'Pure genius! Amazing! 🏆',zh:'真天才！太厉害了！🏆',es:'¡Genio total! ¡Increíble! 🏆'}
+      :score>=400
+      ?{ko:'정말 잘했어요! 멋져요! ⭐',en:'Great job! You rock! ⭐',zh:'非常好！真棒！⭐',es:'¡Muy bien! ¡Excelente! ⭐'}
+      :{ko:'잘했어요! 다시 도전해봐요! 💪',en:'Good try! Play again! 💪',zh:'加油！再来一次！💪',es:'¡Buen intento! ¡Otra vez! 💪'};
+    return(
+      <div style={{minHeight:'100vh',background:'linear-gradient(145deg,#FF7043,#FFB300,#43A047)',
+        display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+        padding:'20px 14px',fontFamily:"'Nunito',sans-serif"}}>
+        <div style={{fontSize:82,animation:'bounce 1.4s ease-in-out infinite',marginBottom:6}}>{medal}</div>
+        <h1 style={{fontSize:28,fontWeight:900,color:'white',margin:'4px 0 6px',
+          textShadow:'0 3px 12px rgba(0,0,0,0.22)',textAlign:'center',
+          fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{T.gameEnd[lang]}</h1>
+        <p style={{fontSize:15,color:'rgba(255,255,255,0.96)',margin:'0 0 12px',fontWeight:800,textAlign:'center'}}>
+          {praise[lang]||praise.ko}
+        </p>
+        <div style={{background:'rgba(255,255,255,0.22)',borderRadius:12,padding:'5px 16px',marginBottom:14,fontSize:13,color:'white',fontWeight:900}}>
+          {LC[lang].flag} {LC[lang].name} · {mi2.icon} {mi2.title[lang]||mi2.title.ko}
+        </div>
+        <div style={{background:'rgba(255,255,255,0.18)',borderRadius:20,padding:14,width:'100%',maxWidth:400,
+          display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}}>
+          {[
+            [lang==='ko'?'🎯 점수':lang==='en'?'🎯 Score':lang==='zh'?'🎯 得分':'🎯 Pts',`${score}${lang==='ko'?'점':''}`],
+            [lang==='ko'?'✅ 정답':lang==='en'?'✅ Correct':lang==='zh'?'✅ 正确':'✅ Acierto',`${crR.current}${lang==='ko'?'개':''}`],
+            [lang==='ko'?'📊 정확도':lang==='en'?'📊 Accuracy':lang==='zh'?'📊 准确率':'📊 Precisión',`${acc}%`],
+            [lang==='ko'?'📈 레벨':lang==='en'?'📈 Level':lang==='zh'?'📈 等级':'📈 Nivel',`Lv.${lvR.current+1}`],
+            [lang==='ko'?'🔥 콤보':lang==='en'?'🔥 Combo':lang==='zh'?'🔥 连击':'🔥 Combo',`${mcR.current}${lang==='ko'?'연속':lang==='zh'?'连':'x'}`],
+            [lang==='ko'?'📝 총':lang==='en'?'📝 Total':lang==='zh'?'📝 总计':'📝 Total',`${ttR.current}${lang==='ko'?'개':''}`],
+          ].map(([lb,v])=>(
+            <div key={lb} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,
+              background:'rgba(255,255,255,0.2)',borderRadius:13,padding:'10px 6px',animation:'popIn 0.4s ease-out'}}>
+              <span style={{color:'rgba(255,255,255,0.82)',fontSize:11,textAlign:'center',fontWeight:700}}>{lb}</span>
+              <span style={{color:'white',fontSize:20,fontWeight:900,fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{v}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:8,width:'100%',maxWidth:400}}>
+          {/* 공유하기 버튼 */}
+          <button onClick={()=>{
+            const lvName=lvLabel(lvR.current,lang);
+            const shareText={
+              ko:`🧮 수학 천재 게임\n\n👑 Lv.${lvR.current+1} ${lvName} 달성!\n🎯 점수 ${score}점\n📊 정확도 ${acc}%\n🔥 최고 콤보 ${mcR.current}연속\n\n나도 도전해봐! 🚀`,
+              en:`🧮 Math Genius Game\n\n👑 Reached Lv.${lvR.current+1} ${lvName}!\n🎯 Score: ${score}\n📊 Accuracy: ${acc}%\n🔥 Best Combo: ${mcR.current}x\n\nCan you beat me? 🚀`,
+              zh:`🧮 数学天才游戏\n\n👑 达到Lv.${lvR.current+1} ${lvName}！\n🎯 得分：${score}分\n📊 正确率：${acc}%\n🔥 最高连击：${mcR.current}次\n\n来挑战我吧！🚀`,
+              es:`🧮 Juego Genio Matemático\n\n👑 ¡Alcancé Lv.${lvR.current+1} ${lvName}!\n🎯 Puntos: ${score}\n📊 Precisión: ${acc}%\n🔥 Combo máx: ${mcR.current}x\n\n¡Atrévete! 🚀`,
+            }[lang]||'';
+            // 모바일: 네이티브 공유 시트 / PC: 클립보드 복사
+            if(navigator.share){
+              navigator.share({title:'수학 천재 게임',text:shareText}).catch(()=>{});
+            }else{
+              navigator.clipboard.writeText(shareText).then(()=>{
+                alert(lang==='ko'?'📋 복사됐어요! 카카오톡·SNS에 붙여넣기 하세요 😊':
+                      lang==='en'?'📋 Copied! Paste it anywhere 😊':
+                      lang==='zh'?'📋 已复制！粘贴到任意地方 😊':
+                      '📋 ¡Copiado! Pégalo donde quieras 😊');
+              }).catch(()=>{
+                // 클립보드 안되면 텍스트 선택 방식
+                const el=document.createElement('textarea');
+                el.value=shareText;document.body.appendChild(el);
+                el.select();document.execCommand('copy');
+                document.body.removeChild(el);
+                alert(lang==='ko'?'📋 복사됐어요! 붙여넣기 하세요 😊':'📋 Copied!');
+              });
+            }
+          }} style={{background:'linear-gradient(135deg,#F59E0B,#EF4444)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(245,158,11,0.45)'}}>
+            {lang==='ko'?'🔗 결과 공유하기':lang==='en'?'🔗 Share Result':lang==='zh'?'🔗 分享成绩':'🔗 Compartir'}
+          </button>
+          <button onClick={()=>startGame(mode)} style={{background:'linear-gradient(135deg,#0EA5E9,#0284C7)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(14,165,233,0.4)'}}>{T.retry[lang]}</button>
+          <button onClick={goHome} style={{background:'linear-gradient(135deg,#22C55E,#16A34A)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(34,197,94,0.4)'}}>{T.goHome[lang]}</button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── GAME ─────────────────────────────────────────────── */
+  if(!q)return null;
+  const mCfg=MODES[mode];
+  const numC=['#0369A1','#0F766E','#15803D','#C2410C','#7C3AED','#B91C1C'][Math.min(lv,5)];
+  const isInfLv=lv>5;  // 무한 레벨 여부
+
+  return(
+    <div style={{minHeight:'100vh',background:BG[bgKey],transition:'background 0.4s',
+      display:'flex',flexDirection:'column',alignItems:'center',
+      padding:'9px 12px 20px',fontFamily:"'Nunito',sans-serif",position:'relative',overflow:'hidden'}}>
+
+      {/* Stars */}
+      {stars.map(s=>(
+        <div key={s.id} style={{position:'fixed',left:`${s.x}%`,top:'30%',fontSize:s.sz,
+          animation:'starPop 1.1s ease-out forwards',pointerEvents:'none',zIndex:99}}>{s.ch}</div>
+      ))}
+      {/* Score float */}
+      {sAnim&&(
+        <div style={{position:'fixed',top:'20%',left:'50%',transform:'translateX(-50%)',
+          fontSize:34,fontWeight:900,color:'#FFD600',
+          animation:'scoreFloat 0.95s ease-out forwards',
+          pointerEvents:'none',zIndex:100,textShadow:'0 2px 10px rgba(0,0,0,0.4)',
+          whiteSpace:'nowrap',fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{sAnim}</div>
+      )}
+
+      {/* Nav bar */}
+      <div style={{width:'100%',maxWidth:490,display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:7}}>
+        <button onClick={goHome} style={{background:'rgba(255,255,255,0.24)',border:'none',borderRadius:16,padding:'6px 13px',color:'white',fontSize:12,fontWeight:900}}>🏠 {T.home[lang]}</button>
+        <div style={{background:'rgba(255,255,255,0.24)',borderRadius:16,padding:'6px 13px',fontSize:13,color:'white',fontWeight:900}}>{mCfg?.icon} {mCfg?.title[lang]||mCfg?.title.ko}</div>
+        <div style={{background:'rgba(255,255,255,0.24)',borderRadius:16,padding:'6px 13px',fontSize:13,color:'white',fontWeight:900}}>{LC[lang].flag}</div>
+      </div>
+
+      {/* Stats */}
+      <div style={{width:'100%',maxWidth:490,display:'grid',gridTemplateColumns:'1fr 1fr 1.2fr',gap:6,marginBottom:6}}>
+        <div style={{background:'rgba(255,255,255,0.22)',borderRadius:13,padding:'7px 8px',textAlign:'center'}}>
+          <div style={{color:'rgba(255,255,255,0.8)',fontSize:10,fontWeight:700}}>{T.score[lang]}</div>
+          <div style={{color:'white',fontSize:18,fontWeight:900,fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{score}</div>
+        </div>
+        <div style={{background:'rgba(255,255,255,0.22)',borderRadius:13,padding:'7px 8px',textAlign:'center'}}>
+          <div style={{color:'rgba(255,255,255,0.8)',fontSize:10,fontWeight:700}}>{T.level[lang]}</div>
+          <div style={{color:isInfLv?'#FFD600':'white',fontSize:14,fontWeight:900}}>
+            {isInfLv?'👑 ':''}{lang==='ko'||lang==='zh'?'Lv.':'Lv.'}{lv+1}
+            <span style={{fontSize:10,opacity:0.85,marginLeft:3}}>{lvLabel(lv,lang)}</span>
+            {isInfLv&&<span style={{fontSize:9,display:'block',color:'#FFD600',opacity:0.9}}>⏰{getQTimer(mode,lv)}s</span>}
+          </div>
+        </div>
+        {mode==='time'?(
+          <div style={{background:'rgba(255,255,255,0.22)',borderRadius:13,padding:'7px 8px',textAlign:'center'}}>
+            <div style={{color:'rgba(255,255,255,0.8)',fontSize:10,fontWeight:700}}>{T.timeL[lang]}</div>
+            <div style={{color:timeLft<=10?'#FFD600':'white',fontSize:18,fontWeight:900,animation:timeLft<=10?'timerWarn 0.5s infinite':'none'}}>{T.secT(timeLft,lang)}</div>
+          </div>
+        ):(
+          <div style={{background:'rgba(255,255,255,0.22)',borderRadius:13,padding:'6px 5px',textAlign:'center',display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
+            <div style={{color:'rgba(255,255,255,0.8)',fontSize:10,fontWeight:700}}>{T.lives[lang]}</div>
+            <Hearts lives={lives} max={mCfg?.lives||5}/>
+          </div>
+        )}
+      </div>
+
+      {combo>=3&&(
+        <div style={{background:'rgba(255,214,0,0.22)',border:'2px solid #FFD600',borderRadius:16,
+          padding:'3px 14px',marginBottom:5,fontSize:14,fontWeight:900,color:'#FFD600',animation:'pulse 0.65s infinite'}}>
+          {T.comboT(combo,lang)} {combo>=10?'👑':combo>=5?'⚡':''}
+        </div>
+      )}
+
+      {/* Timer bar: right→left */}
+      <div style={{width:'100%',maxWidth:490,marginBottom:6}}>
+        <TimerBar val={qTime} max={qMax} lang={lang}/>
+      </div>
+
+      {/* Level progress */}
+      <div style={{width:'100%',maxWidth:490,marginBottom:8}}>
+        <div style={{background:'rgba(255,255,255,0.18)',borderRadius:20,height:7}}>
+          <div style={{background:'#FFD600',borderRadius:20,height:'100%',width:`${(corr%5)/5*100}%`,transition:'width 0.5s'}}/>
+        </div>
+        <div style={{color:'rgba(255,255,255,0.68)',fontSize:10,textAlign:'right',marginTop:2,fontWeight:700}}>{T.toLvUp(5-(corr%5),lang)}</div>
+      </div>
+
+      {lvAnim&&(
+        <div style={{background:'white',color:'#B45309',fontSize:15,fontWeight:900,padding:'8px 22px',
+          borderRadius:26,marginBottom:8,boxShadow:'0 4px 20px rgba(0,0,0,0.2)',
+          animation:'levelUp 0.5s ease-out',fontFamily:"'Fredoka One','Nunito',sans-serif",textAlign:'center'}}>
+          {T.lvUpMsg(lv+1,lvLabel(lv,lang),lang)}
+        </div>
+      )}
+
+      {/* Question card */}
+      <div style={{background:'rgba(255,255,255,0.18)',borderRadius:24,padding:'16px 16px',marginBottom:8,
+        width:'100%',maxWidth:490,textAlign:'center',
+        animation:shake?'shake 0.44s ease-out':'none',
+        border:'2px solid rgba(255,255,255,0.28)',backdropFilter:'blur(8px)'}}>
+        {mode==='listen'?(
+          /* 듣고 맞추기: 문제 절대 안 보여줌 — 귀로만 듣고 선택 */
+          <div style={{padding:'4px 0'}}>
+            <div style={{fontSize:60,animation:lstPh?'listenBeat 0.85s ease-in-out infinite':'none'}}>👂</div>
+            <p style={{color:'white',fontSize:14,fontWeight:900,marginTop:8}}>
+              {lstPh?T.listen[lang]:T.readV[lang]}
+            </p>
+            <button onClick={()=>say(qSentence(q.a,q.op,q.b,lang),lang)}
+              style={{background:'rgba(255,255,255,0.24)',border:'2px solid rgba(255,255,255,0.5)',borderRadius:16,padding:'6px 16px',color:'white',fontSize:12,fontWeight:900,marginTop:8}}>
+              🔊 {T.replay[lang]}
+            </button>
+          </div>
+        ):(
+          <>
+            <div style={{fontSize:10,color:'rgba(255,255,255,0.82)',marginBottom:8,fontWeight:700}}>🔊 {LC[lang].flag} {T.readV[lang]}</div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,marginBottom:10,flexWrap:'wrap'}}>
+              <NumBox val={String(q.a)} color={numC}/>
+              <OpBox op={q.op}/>
+              <NumBox val={String(q.b)} color={numC}/>
+              <span style={{fontSize:30,color:'rgba(255,255,255,0.88)',fontWeight:900,fontFamily:"'Fredoka One','Nunito',sans-serif"}}>=</span>
+              <div style={{width:58,height:60,background:'rgba(255,255,255,0.2)',borderRadius:16,
+                border:'3px dashed rgba(255,255,255,0.6)',display:'flex',alignItems:'center',justifyContent:'center',
+                fontSize:26,color:'rgba(255,255,255,0.8)'}}>?</div>
+            </div>
+            <button onClick={()=>say(qSentence(q.a,q.op,q.b,lang),lang)}
+              style={{background:'rgba(255,255,255,0.22)',border:'2px solid rgba(255,255,255,0.4)',borderRadius:16,padding:'5px 16px',color:'white',fontSize:11,fontWeight:800}}>
+              🔊 {T.replay[lang]}
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Answer buttons — 듣고맞추기: 음성 재생 중 비활성, 끝나면 활성 */}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:9,width:'100%',maxWidth:490}}>
+        {q.choices.map((c,i)=>{
+          let bg='rgba(255,255,255,0.94)',bd='3px solid rgba(255,255,255,0.7)',cl='#1e1b4b',sh='0 4px 14px rgba(0,0,0,0.13)';
+          if(selA!==null){
+            if(c===q.answer){bg='#16A34A';bd='3px solid #15803D';cl='white';sh='0 4px 18px rgba(22,163,74,0.5)';}
+            else if(c===selA){bg='#DC2626';bd='3px solid #B91C1C';cl='white';}
+            else{bg='rgba(255,255,255,0.36)';cl='rgba(255,255,255,0.45)';}
+          }
+          const isDisabled=lockd||(mode==='listen'&&lstPh);
+          const l2=String(c).length;
+          return(
+            <button key={i} onClick={()=>handleA(c)} disabled={isDisabled}
+              style={{background:bg,border:bd,borderRadius:18,padding:'15px 6px',
+                fontSize:l2>3?18:l2>2?24:30,fontWeight:900,color:cl,boxShadow:sh,
+                transition:'all 0.2s',fontFamily:"'Fredoka One','Nunito',sans-serif",minHeight:64,
+                opacity:isDisabled&&selA===null?0.45:1}}>
+              {c}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Feedback */}
+      {fbTy&&(
+        <div style={{marginTop:11,fontSize:18,fontWeight:900,color:'white',
+          textShadow:'0 2px 10px rgba(0,0,0,0.28)',textAlign:'center',animation:'fadeInUp 0.3s ease-out'}}>
+          {fbTx}
+          {fbTy==='w'&&selA!=='to'&&q&&(
+            <div style={{fontSize:13,marginTop:3,opacity:0.92}}>{T.wrongA(q.answer,lang)}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const root=ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+</body>
+</html>
