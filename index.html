@@ -519,7 +519,7 @@ function App(){
     cbR.current=0;setCombo(0);ttR.current++;setTot(ttR.current);
     if(mR.current!=='time'){
       livR.current--;setLives(livR.current);
-      if(livR.current<=0){setTimeout(()=>{say(rnd(PH.over,lR.current),lR.current);setScr('result');},1800); // 마지막 피드백 후 결과화면return;}
+      if(livR.current<=0){setTimeout(()=>{say(rnd(PH.over,lR.current),lR.current);setScr('result');},1800);return;}
     }
     setTimeout(()=>next(lvR.current),2000); // 피드백 음성 완료 대기
   },[]);
@@ -615,7 +615,7 @@ function App(){
       say(rnd(PH.wSpeak,lR.current),lR.current);
       if(mR.current!=='time'){
         livR.current--;setLives(livR.current);
-        if(livR.current<=0){setTimeout(()=>{say(rnd(PH.over,lR.current),lR.current);setScr('result');},1800); // 마지막 피드백 후 결과화면return;}
+        if(livR.current<=0){setTimeout(()=>{say(rnd(PH.over,lR.current),lR.current);setScr('result');},1800);return;}
       }
       setTimeout(()=>next(lvR.current),2000); // 피드백 음성 완료 대기
     }
