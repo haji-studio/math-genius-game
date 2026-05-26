@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>🌟 수학 천재 게임</title>
+<title>🌟 수학 천재 게임 - 성장 테스트</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -29,6 +29,9 @@ button:active{transform:scale(0.92)!important}
 @keyframes floatC{0%,100%{transform:translateY(0)rotate(6deg)}50%{transform:translateY(-9px)rotate(-6deg)}}
 @keyframes listenBeat{0%,100%{transform:scale(1);filter:drop-shadow(0 0 6px rgba(255,255,255,0.4))}50%{transform:scale(1.14);filter:drop-shadow(0 0 18px rgba(255,255,255,0.8))}}
 @keyframes homeBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes petDance{0%,100%{transform:translateY(0)rotate(-2deg)scale(1)}35%{transform:translateY(-12px)rotate(5deg)scale(1.08)}70%{transform:translateY(-4px)rotate(-5deg)scale(1.03)}}
+@keyframes sparkleRing{0%{opacity:0;transform:scale(0.55)}45%{opacity:1}100%{opacity:0;transform:scale(1.7)}}
+@keyframes resultGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(255,255,255,0.45))}50%{filter:drop-shadow(0 0 24px rgba(255,255,255,0.9))}}
 </style>
 </head>
 <body>
@@ -40,7 +43,7 @@ const {useState,useRef,useEffect,useCallback}=React;
    BGM  —  Web Audio API, pentatonic melody
 ═══════════════════════════════════════════════════════════ */
 const BGM=(()=>{
-  let ctx=null,master=null,playing=false,tid=null;
+  let ctx=null,master=null,playing=false,tid=null,unlocked=false;
   const MEL=[
     [523,0.22],[659,0.22],[784,0.22],[880,0.44],
     [784,0.22],[659,0.22],[587,0.22],[659,0.44],
@@ -61,15 +64,35 @@ const BGM=(()=>{
     }
     return ctx;
   };
+  // iPhone/Android 모바일 브라우저용: 사용자 터치 안에서 아주 짧은 무음 소리를 내서 AudioContext를 깨움
+  const prime=()=>{
+    if(!ctx)return;
+    try{
+      const o=ctx.createOscillator();
+      const g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.0001,ctx.currentTime);
+      o.frequency.setValueAtTime(440,ctx.currentTime);
+      o.start(ctx.currentTime);
+      o.stop(ctx.currentTime+0.03);
+      unlocked=true;
+    }catch(e){}
+  };
   const resume=async()=>{
     ensure();
-    if(ctx&&ctx.state==='suspended'){
-      try{await ctx.resume();}catch(e){}
+    if(!ctx)return null;
+    try{
+      if(ctx.state==='suspended')await ctx.resume();
+      prime();
+    }catch(e){
+      // 일부 iOS는 resume 직후 한 번 더 시도해야 풀림
+      try{setTimeout(()=>ctx&&ctx.resume&&ctx.resume(),80);}catch(_){}
     }
     if(master&&ctx){
       master.gain.cancelScheduledValues(ctx.currentTime);
       master.gain.setValueAtTime(0.16,ctx.currentTime);
     }
+    return ctx;
   };
   const note=(f,d,t)=>{
     if(!ctx||!master)return;
@@ -83,7 +106,11 @@ const BGM=(()=>{
   };
   const loop=()=>{
     if(!playing||!ctx)return;
-    let t=ctx.currentTime+0.05;
+    if(ctx.state==='suspended'){
+      ctx.resume().then(()=>{if(playing)loop();}).catch(()=>{});
+      return;
+    }
+    let t=ctx.currentTime+0.08;
     MEL.forEach(([f,d])=>{note(f,d,t);t+=d;});
     clearTimeout(tid);
     tid=setTimeout(loop,Math.max(200,(t-ctx.currentTime-0.04)*1000));
@@ -93,7 +120,11 @@ const BGM=(()=>{
     async start(){
       await resume();
       if(!ctx)return;
-      if(!playing){playing=true;loop();}
+      clearTimeout(tid);
+      playing=true;
+      // iOS에서 첫 시작이 씹히는 경우가 있어 즉시 1회, 아주 짧게 늦춰 1회 더 예약
+      loop();
+      setTimeout(()=>{if(playing&&ctx&&ctx.state==='running')loop();},120);
     },
     stop(){
       playing=false;clearTimeout(tid);
@@ -102,7 +133,8 @@ const BGM=(()=>{
         master.gain.setTargetAtTime(0,ctx.currentTime,0.18);
       }
     },
-    toggle(on){on?this.start():this.stop();},
+    async toggle(on){on?await this.start():this.stop();},
+    isUnlocked(){return unlocked||!!(ctx&&ctx.state==='running');}
   };
 })();
 
@@ -110,6 +142,43 @@ const BGM=(()=>{
 const unlockAudioOnce=()=>{BGM.unlock();refreshVoices?.();};
 window.addEventListener('pointerdown',unlockAudioOnce,{once:true,passive:true});
 window.addEventListener('touchstart',unlockAudioOnce,{once:true,passive:true});
+
+
+
+/* ═══════════════════════════════════════════════════════════
+   SFX — 모바일 대응 Web Audio 효과음
+═══════════════════════════════════════════════════════════ */
+const SFX=(()=>{
+  let ctx=null,master=null;
+  const ensure=async()=>{
+    if(!ctx){
+      ctx=new(window.AudioContext||window.webkitAudioContext)();
+      master=ctx.createGain();master.gain.value=0.22;master.connect(ctx.destination);
+    }
+    if(ctx.state==='suspended')await ctx.resume();
+    return ctx;
+  };
+  const beep=async(freq=660,dur=0.12,type='sine',gain=0.22,delay=0)=>{
+    try{
+      await ensure();
+      const t=ctx.currentTime+delay;
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type=type;o.frequency.setValueAtTime(freq,t);
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(gain,t+0.01);
+      g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+0.03);
+    }catch(e){}
+  };
+  return{
+    unlock:ensure,
+    correct(){beep(740,0.10,'triangle',0.22,0);beep(988,0.13,'triangle',0.18,0.08);},
+    wrong(){beep(220,0.18,'sawtooth',0.16,0);beep(160,0.22,'sawtooth',0.12,0.12);},
+    combo(){beep(660,0.08,'square',0.13,0);beep(880,0.08,'square',0.13,0.06);beep(1180,0.12,'square',0.12,0.12);},
+    level(){beep(523,0.10,'triangle',0.18,0);beep(659,0.10,'triangle',0.18,0.09);beep(784,0.12,'triangle',0.18,0.18);beep(1047,0.20,'triangle',0.18,0.29);},
+    fanfare(){beep(523,0.12,'triangle',0.16,0);beep(659,0.12,'triangle',0.16,0.12);beep(784,0.12,'triangle',0.16,0.24);beep(1047,0.28,'triangle',0.18,0.38);},
+  };
+})();
 
 /* ═══════════════════════════════════════════════════════════
    Constants
@@ -513,6 +582,31 @@ function Hearts({lives,max}){
   );
 }
 
+
+const PETS=[
+  {min:1,emoji:'🥚',name:{ko:'천재 알',en:'Genius Egg',zh:'天才蛋',es:'Huevo Genio'},msg:{ko:'막 깨어날 준비 중!',en:'Ready to hatch!',zh:'准备孵化！',es:'¡Listo para nacer!'}},
+  {min:2,emoji:'🐣',name:{ko:'아기 병아리',en:'Baby Chick',zh:'小鸡',es:'Pollito'},msg:{ko:'정답을 먹고 자라요',en:'Grows with answers',zh:'靠答题成长',es:'Crece con aciertos'}},
+  {min:4,emoji:'🐱',name:{ko:'수학 고양이',en:'Math Cat',zh:'数学猫',es:'Gato Mate'},msg:{ko:'콤보를 좋아해요',en:'Loves combos',zh:'喜欢连击',es:'Ama combos'}},
+  {min:7,emoji:'🦖',name:{ko:'공룡 박사',en:'Dino Doctor',zh:'恐龙博士',es:'Dino Doctor'},msg:{ko:'어려운 문제도 와앙!',en:'Crunches hard problems',zh:'难题也能吃掉',es:'Devora problemas'}},
+  {min:11,emoji:'🧙',name:{ko:'수학 마법사',en:'Math Wizard',zh:'数学魔法师',es:'Mago Mate'},msg:{ko:'숫자 마법 발동',en:'Number magic on',zh:'数字魔法启动',es:'Magia numérica'}},
+  {min:16,emoji:'🚀',name:{ko:'우주 천재',en:'Cosmic Genius',zh:'宇宙天才',es:'Genio Cósmico'},msg:{ko:'은하계 계산왕',en:'Galaxy calculator',zh:'银河计算王',es:'Rey galáctico'}},
+];
+const getPet=(gameLv)=>[...PETS].reverse().find(p=>gameLv>=p.min)||PETS[0];
+const getGrade=(score,acc)=>score>=900&&acc>=80?'S+':score>=600?'S':score>=350?'A':score>=150?'B':'C';
+function PetCard({pet,lang,compact=false,pulse=false,combo=0,score=0}){
+  return(
+    <div style={{position:'relative',background:'rgba(255,255,255,0.24)',border:'2px solid rgba(255,255,255,0.5)',borderRadius:compact?18:24,padding:compact?'8px 12px':'12px 16px',display:'flex',alignItems:'center',gap:compact?8:12,boxShadow:'0 4px 16px rgba(0,0,0,0.10)',backdropFilter:'blur(8px)',overflow:'hidden'}}>
+      {pulse&&<div style={{position:'absolute',left:compact?16:20,top:compact?10:12,width:compact?42:56,height:compact?42:56,borderRadius:'50%',border:'3px solid rgba(255,255,255,0.75)',animation:'sparkleRing 0.8s ease-out forwards'}}/>}
+      <div style={{fontSize:compact?34:48,animation:pulse?'petDance 0.8s ease-out':'floatB 4s ease-in-out infinite',zIndex:1}}>{pet.emoji}</div>
+      <div style={{zIndex:1,minWidth:0}}>
+        <div style={{fontSize:compact?13:16,fontWeight:900,color:'white',textShadow:'0 2px 8px rgba(0,0,0,0.22)'}}>{pet.name[lang]||pet.name.ko}</div>
+        <div style={{fontSize:compact?10:12,fontWeight:800,color:'rgba(255,255,255,0.86)'}}>{pet.msg[lang]||pet.msg.ko}</div>
+        {!compact&&<div style={{marginTop:5,fontSize:11,fontWeight:900,color:'#FFF7AD'}}>⭐ 성장 점수 {score} · 🔥 {combo}콤보</div>}
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════
    App
 ═══════════════════════════════════════════════════════════ */
@@ -542,6 +636,7 @@ function App(){
   const [shake,setShake]=useState(false);
   const [lstPh,setLstPh]=useState(false);
   const [bgKey,setBgKey]=useState('sky');
+  const [petPulse,setPetPulse]=useState(false);
 
   const gT=useRef(null),qT=useRef(null),lsT=useRef(null);
   const qTR=useRef(Q_NORMAL),lvR=useRef(0),livR=useRef(5),mR=useRef(null),lR=useRef('ko');
@@ -555,6 +650,7 @@ function App(){
     return()=>window.speechSynthesis.removeEventListener('voiceschanged',refreshVoices);
   },[]);
   useEffect(()=>()=>{clearInterval(gT.current);clearInterval(qT.current);clearTimeout(lsT.current);},[]);
+  useEffect(()=>{if(scr==='result')setTimeout(()=>SFX.fanfare(),250);},[scr]);
 
   const spawnS=()=>{
     const s=[...Array(12)].map((_,i)=>({id:Date.now()+i,x:Math.random()*84+6,col:STARS_COLS[i%7],sz:Math.random()*18+13,ch:STARS_CHARS[Math.floor(Math.random()*6)]}));
@@ -567,7 +663,7 @@ function App(){
     lkR.current=true;setLockd(true);setSelA('to');
     setFbTy('wrong');setFbTx(rnd(PH.wUI,lR.current));
     say(rnd(PH.to,lR.current),lR.current);
-    setBgKey('red');setShake(true);setTimeout(()=>setShake(false),520);
+    SFX.wrong();setBgKey('red');setShake(true);setTimeout(()=>setShake(false),520);
     cbR.current=0;setCombo(0);ttR.current++;setTot(ttR.current);
     if(mR.current!=='time'){
       livR.current--;setLives(livR.current);
@@ -618,7 +714,7 @@ function App(){
     setMode(m);setScore(0);setLives(mc.lives);setTimeLft(60);setLv(mc.startLv);
     setCorr(0);setTot(0);setCombo(0);setMaxCombo(0);
     setFbTy(null);setFbTx('');setSelA(null);setLockd(false);
-    setLvAnim(false);setStars([]);setSAnim(null);setBgKey('sky');setLstPh(false);
+    setLvAnim(false);setStars([]);setSAnim(null);setBgKey('sky');setLstPh(false);setPetPulse(false);
     setScr('game');
     if(m==='time'){
       gT.current=setInterval(()=>{
@@ -633,6 +729,7 @@ function App(){
   };
 
   const handleA=c=>{
+    SFX.unlock();
     if(lkR.current)return;
     stopQ();lkR.current=true;setLockd(true);setSelA(c);
     const ok=c===qR.current?.answer;
@@ -650,18 +747,19 @@ function App(){
       setSAnim(`+${e}`);setTimeout(()=>setSAnim(null),950);
       crR.current++;setCorr(crR.current);
       setFbTy('c');setFbTx(rnd(PH.cUI,lR.current));
-      setBgKey('green');spawnS();
+      setBgKey('green');spawnS();SFX.correct();setPetPulse(true);setTimeout(()=>setPetPulse(false),850);
+      if(nc>=3)SFX.combo();
       // 선택한 숫자를 먼저 읽고 정답 피드백 — "5! 정답이에요!"
       say(`${c}! ${rnd(PH.cSpeak,lR.current)}`,lR.current);
       let nlv=lvR.current;
       if(crR.current%5===0){  // 레벨 상한 제거 — 무한 레벨
         nlv++;lvR.current=nlv;setLv(nlv);setLvAnim(true);
-        setTimeout(()=>say(rnd(PH.up,lR.current),lR.current),600);
+        SFX.level();setTimeout(()=>say(rnd(PH.up,lR.current),lR.current),600);
         setTimeout(()=>setLvAnim(false),2200);
       }
       setTimeout(()=>next(nlv),2000); // 피드백 음성 완료 대기
     }else{
-      setBgKey('red');setShake(true);setTimeout(()=>setShake(false),520);
+      SFX.wrong();setBgKey('red');setShake(true);setTimeout(()=>setShake(false),520);
       cbR.current=0;setCombo(0);
       setFbTy('w');setFbTx(rnd(PH.wUI,lR.current));
       say(rnd(PH.wSpeak,lR.current),lR.current);
@@ -674,10 +772,11 @@ function App(){
   };
 
   const goHome=()=>{clearInterval(gT.current);stopQ();clearTimeout(lsT.current);BGM.stop();setBgmOn(false);setScr('home');};
-  const toggleBGM=()=>{const n=!bgmOn;setBgmOn(n);BGM.toggle(n);};
+  const toggleBGM=async()=>{const n=!bgmOn;setBgmOn(n);await BGM.toggle(n);};
   const mi=mode?MODES[mode]:null;
   const acc=ttR.current>0?Math.round(crR.current/ttR.current*100):0;
   const qMax=mi?mi.qt:Q_NORMAL;
+  const currentPet=getPet(lv+1);
 
   /* ── HOME ─────────────────────────────────────────────── */
   if(scr==='home')return(
@@ -704,7 +803,7 @@ function App(){
           style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 10px',color:'white',fontSize:11,fontWeight:900,backdropFilter:'blur(6px)'}}>
           🔍 음성
         </button>
-        <button onClick={()=>{BGM.unlock();toggleBGM();}} style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 12px',color:'white',fontSize:12,fontWeight:900,backdropFilter:'blur(6px)'}}>
+        <button onTouchStart={()=>BGM.unlock()} onClick={async()=>{await BGM.unlock();await toggleBGM();}} style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 12px',color:'white',fontSize:12,fontWeight:900,backdropFilter:'blur(6px)'}}>
           {bgmOn?'🎵 ON':'🔇 OFF'}
         </button>
       </div>
@@ -773,6 +872,14 @@ function App(){
         <p style={{fontSize:13,color:'rgba(255,255,255,0.95)',margin:'0 0 16px',textAlign:'center',fontWeight:800}}>
           {lang==='ko'?'🧠 즐겁게 배우는 수학 게임!':lang==='en'?'🧠 Learn Math the Fun Way!':lang==='zh'?'🧠 快乐学数学！':'🧠 ¡Aprende Matemáticas!'}
         </p>
+        <div style={{width:'100%',marginBottom:12}}>
+          <PetCard pet={PETS[1]} lang={lang} score={0} combo={0}/>
+        </div>
+        <div style={{width:'100%',display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6,marginBottom:12}}>
+          {[['🐣',lang==='ko'?'캐릭터 성장':lang==='en'?'Pet Growth':lang==='zh'?'角色成长':'Mascota'],['🏆',lang==='ko'?'결과 등급':lang==='en'?'Result Grade':lang==='zh'?'成绩等级':'Rango'],['🔔',lang==='ko'?'효과음 강화':lang==='en'?'Fun SFX':lang==='zh'?'趣味音效':'Sonidos']].map((x,i)=>(
+            <div key={i} style={{background:'rgba(255,255,255,0.2)',border:'1.5px solid rgba(255,255,255,0.35)',borderRadius:14,padding:'8px 4px',textAlign:'center',color:'white',fontSize:10,fontWeight:900}}><div style={{fontSize:18}}>{x[0]}</div>{x[1]}</div>
+          ))}
+        </div>
 
         {/* ── Language selector ── compact, full name */}
         <div style={{width:'100%',marginBottom:13}}>
@@ -851,7 +958,8 @@ function App(){
       <div style={{minHeight:'100vh',background:'linear-gradient(145deg,#FF7043,#FFB300,#43A047)',
         display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
         padding:'20px 14px',fontFamily:"'Nunito',sans-serif"}}>
-        <div style={{fontSize:82,animation:'bounce 1.4s ease-in-out infinite',marginBottom:6}}>{medal}</div>
+        <div style={{fontSize:82,animation:'resultGlow 1.4s ease-in-out infinite',marginBottom:2}}>{getPet(lvR.current+1).emoji}</div>
+        <div style={{fontSize:30,marginBottom:6}}>{medal} {getGrade(score,acc)} 등급</div>
         <h1 style={{fontSize:28,fontWeight:900,color:'white',margin:'4px 0 6px',
           textShadow:'0 3px 12px rgba(0,0,0,0.22)',textAlign:'center',
           fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{T.gameEnd[lang]}</h1>
@@ -860,6 +968,9 @@ function App(){
         </p>
         <div style={{background:'rgba(255,255,255,0.22)',borderRadius:12,padding:'5px 16px',marginBottom:14,fontSize:13,color:'white',fontWeight:900}}>
           {LC[lang].flag} {LC[lang].name} · {mi2.icon} {mi2.title[lang]||mi2.title.ko}
+        </div>
+        <div style={{width:'100%',maxWidth:400,marginBottom:12}}>
+          <PetCard pet={getPet(lvR.current+1)} lang={lang} score={score} combo={mcR.current} pulse={true}/>
         </div>
         <div style={{background:'rgba(255,255,255,0.18)',borderRadius:20,padding:14,width:'100%',maxWidth:400,
           display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}}>
@@ -883,7 +994,8 @@ function App(){
           <button onClick={()=>{
             const lvName=lvLabel(lvR.current,lang);
             const shareText={
-              ko:`🧮 수학 천재 게임\n\n👑 Lv.${lvR.current+1} ${lvName} 달성!\n🎯 점수 ${score}점\n📊 정확도 ${acc}%\n🔥 최고 콤보 ${mcR.current}연속\n\n나도 도전해봐! 🚀`,
+              ko:`🧮 수학 천재 게임\n\n👑 Lv.${lvR.current+1} ${lvName} 달성!
+${getPet(lvR.current+1).emoji} ${getPet(lvR.current+1).name.ko} 성장\n🎯 점수 ${score}점\n📊 정확도 ${acc}%\n🔥 최고 콤보 ${mcR.current}연속\n\n나도 도전해봐! 🚀`,
               en:`🧮 Math Genius Game\n\n👑 Reached Lv.${lvR.current+1} ${lvName}!\n🎯 Score: ${score}\n📊 Accuracy: ${acc}%\n🔥 Best Combo: ${mcR.current}x\n\nCan you beat me? 🚀`,
               zh:`🧮 数学天才游戏\n\n👑 达到Lv.${lvR.current+1} ${lvName}！\n🎯 得分：${score}分\n📊 正确率：${acc}%\n🔥 最高连击：${mcR.current}次\n\n来挑战我吧！🚀`,
               es:`🧮 Juego Genio Matemático\n\n👑 ¡Alcancé Lv.${lvR.current+1} ${lvName}!\n🎯 Puntos: ${score}\n📊 Precisión: ${acc}%\n🔥 Combo máx: ${mcR.current}x\n\n¡Atrévete! 🚀`,
@@ -981,6 +1093,10 @@ function App(){
           {T.comboT(combo,lang)} {combo>=10?'👑':combo>=5?'⚡':''}
         </div>
       )}
+
+      <div style={{width:'100%',maxWidth:490,marginBottom:7}}>
+        <PetCard pet={currentPet} lang={lang} compact={true} pulse={petPulse} combo={combo} score={score}/>
+      </div>
 
       {/* Timer bar: right→left */}
       <div style={{width:'100%',maxWidth:490,marginBottom:6}}>
