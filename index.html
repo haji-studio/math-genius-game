@@ -43,7 +43,10 @@ const {useState,useRef,useEffect,useCallback}=React;
    BGM  —  Web Audio API, pentatonic melody
 ═══════════════════════════════════════════════════════════ */
 const BGM=(()=>{
-  let ctx=null,master=null,playing=false,tid=null,unlocked=false;
+  let audio=null;
+  let playing=false;
+  let ctx=null,master=null,tid=null;
+
   const MEL=[
     [523,0.22],[659,0.22],[784,0.22],[880,0.44],
     [784,0.22],[659,0.22],[587,0.22],[659,0.44],
@@ -53,44 +56,59 @@ const BGM=(()=>{
     [659,0.22],[523,0.22],[587,0.22],[659,0.44],
     [784,0.22],[659,0.22],[523,0.88],
   ];
-  const ensure=()=>{
+
+  // iPhone Safari 대응 핵심:
+  // WebAudio 멜로디가 막히는 기기에서는 HTMLAudio(data wav)를 먼저 재생한다.
+  // 파일 서버 없이 GitHub Pages 단일 html에서도 동작하도록 BGM wav를 브라우저에서 직접 만든다.
+  const makeBgmUrl=()=>{
+    const sr=22050;
+    const totalSec=7.2;
+    const len=Math.floor(sr*totalSec);
+    const samples=new Int16Array(len);
+    let pos=0;
+    const addNote=(freq,dur)=>{
+      const n=Math.floor(sr*dur);
+      for(let i=0;i<n && pos+i<len;i++){
+        const t=i/sr;
+        const env=Math.min(1,i/(sr*0.025))*Math.min(1,(n-i)/(sr*0.08));
+        const v=Math.sin(2*Math.PI*freq*t)*0.24*env;
+        samples[pos+i]=Math.max(-32767,Math.min(32767,Math.floor(v*32767)));
+      }
+      pos+=n;
+    };
+    while(pos<len){MEL.forEach(([f,d])=>addNote(f,d));}
+    const dataBytes=samples.length*2;
+    const buffer=new ArrayBuffer(44+dataBytes);
+    const view=new DataView(buffer);
+    const write=(off,str)=>{for(let i=0;i<str.length;i++)view.setUint8(off+i,str.charCodeAt(i));};
+    write(0,'RIFF');view.setUint32(4,36+dataBytes,true);write(8,'WAVE');
+    write(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);
+    view.setUint16(22,1,true);view.setUint32(24,sr,true);view.setUint32(28,sr*2,true);
+    view.setUint16(32,2,true);view.setUint16(34,16,true);
+    write(36,'data');view.setUint32(40,dataBytes,true);
+    let off=44;for(let i=0;i<samples.length;i++,off+=2)view.setInt16(off,samples[i],true);
+    let binary='';const bytes=new Uint8Array(buffer);const chunk=0x8000;
+    for(let i=0;i<bytes.length;i+=chunk){binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));}
+    return 'data:audio/wav;base64,'+btoa(binary);
+  };
+
+  const ensureAudio=()=>{
+    if(audio)return audio;
+    audio=new Audio(makeBgmUrl());
+    audio.loop=true;
+    audio.volume=0.42;          // 모바일에서 너무 작게 들리는 문제 보정
+    audio.preload='auto';
+    audio.setAttribute('playsinline','');
+    audio.setAttribute('webkit-playsinline','');
+    return audio;
+  };
+
+  const ensureCtx=()=>{
     const AC=window.AudioContext||window.webkitAudioContext;
     if(!AC)return null;
     if(!ctx||ctx.state==='closed'){
       ctx=new AC();
-      master=ctx.createGain();
-      master.gain.value=0.16;
-      master.connect(ctx.destination);
-    }
-    return ctx;
-  };
-  // iPhone/Android 모바일 브라우저용: 사용자 터치 안에서 아주 짧은 무음 소리를 내서 AudioContext를 깨움
-  const prime=()=>{
-    if(!ctx)return;
-    try{
-      const o=ctx.createOscillator();
-      const g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);
-      g.gain.setValueAtTime(0.0001,ctx.currentTime);
-      o.frequency.setValueAtTime(440,ctx.currentTime);
-      o.start(ctx.currentTime);
-      o.stop(ctx.currentTime+0.03);
-      unlocked=true;
-    }catch(e){}
-  };
-  const resume=async()=>{
-    ensure();
-    if(!ctx)return null;
-    try{
-      if(ctx.state==='suspended')await ctx.resume();
-      prime();
-    }catch(e){
-      // 일부 iOS는 resume 직후 한 번 더 시도해야 풀림
-      try{setTimeout(()=>ctx&&ctx.resume&&ctx.resume(),80);}catch(_){}
-    }
-    if(master&&ctx){
-      master.gain.cancelScheduledValues(ctx.currentTime);
-      master.gain.setValueAtTime(0.16,ctx.currentTime);
+      master=ctx.createGain();master.gain.value=0.22;master.connect(ctx.destination);
     }
     return ctx;
   };
@@ -100,43 +118,59 @@ const BGM=(()=>{
     o.connect(g);g.connect(master);
     o.type='sine';o.frequency.value=f;
     g.gain.setValueAtTime(0.0,t);
-    g.gain.linearRampToValueAtTime(0.26,t+0.02);
+    g.gain.linearRampToValueAtTime(0.24,t+0.02);
     g.gain.setTargetAtTime(0.0,t+d*0.65,0.07);
     o.start(t);o.stop(t+d+0.1);
   };
-  const loop=()=>{
-    if(!playing||!ctx)return;
-    if(ctx.state==='suspended'){
-      ctx.resume().then(()=>{if(playing)loop();}).catch(()=>{});
-      return;
-    }
-    let t=ctx.currentTime+0.08;
+  const loopWebAudio=async()=>{
+    if(!playing)return;
+    ensureCtx();
+    if(!ctx)return;
+    try{if(ctx.state==='suspended')await ctx.resume();}catch(e){}
+    if(ctx.state!=='running')return;
+    let t=ctx.currentTime+0.05;
     MEL.forEach(([f,d])=>{note(f,d,t);t+=d;});
     clearTimeout(tid);
-    tid=setTimeout(loop,Math.max(200,(t-ctx.currentTime-0.04)*1000));
+    tid=setTimeout(loopWebAudio,Math.max(200,(t-ctx.currentTime-0.04)*1000));
   };
+
   return{
-    async unlock(){await resume();},
+    async unlock(){
+      try{
+        const a=ensureAudio();
+        a.load();
+      }catch(e){}
+      try{ensureCtx(); if(ctx&&ctx.state==='suspended')await ctx.resume();}catch(e){}
+    },
     async start(){
-      await resume();
-      if(!ctx)return;
-      clearTimeout(tid);
       playing=true;
-      // iOS에서 첫 시작이 씹히는 경우가 있어 즉시 1회, 아주 짧게 늦춰 1회 더 예약
-      loop();
-      setTimeout(()=>{if(playing&&ctx&&ctx.state==='running')loop();},120);
+      clearTimeout(tid);
+      const a=ensureAudio();
+      try{
+        a.currentTime=0;
+        await a.play();
+        return true;
+      }catch(e){
+        // HTMLAudio가 막힌 경우 마지막 안전망으로 WebAudio BGM 사용
+        loopWebAudio();
+        setTimeout(()=>{if(playing)loopWebAudio();},120);
+        return false;
+      }
     },
     stop(){
-      playing=false;clearTimeout(tid);
+      playing=false;
+      clearTimeout(tid);
+      if(audio){try{audio.pause();audio.currentTime=0;}catch(e){}}
       if(master&&ctx){
         master.gain.cancelScheduledValues(ctx.currentTime);
         master.gain.setTargetAtTime(0,ctx.currentTime,0.18);
+        setTimeout(()=>{if(master&&!playing)master.gain.value=0.22;},350);
       }
     },
-    async toggle(on){on?await this.start():this.stop();},
-    isUnlocked(){return unlocked||!!(ctx&&ctx.state==='running');}
+    async toggle(on){return on?await this.start():(this.stop(),true);},
+    isUnlocked(){return !!(audio)||!!(ctx&&ctx.state==='running');}
   };
-})();
+})();;
 
 // iPhone/Safari 오디오 잠금 해제: 첫 터치에서 BGM용 AudioContext를 준비
 const unlockAudioOnce=()=>{BGM.unlock();refreshVoices?.();};
@@ -772,7 +806,7 @@ function App(){
   };
 
   const goHome=()=>{clearInterval(gT.current);stopQ();clearTimeout(lsT.current);BGM.stop();setBgmOn(false);setScr('home');};
-  const toggleBGM=async()=>{const n=!bgmOn;setBgmOn(n);await BGM.toggle(n);};
+  const toggleBGM=async()=>{const n=!bgmOn;setBgmOn(n);const ok=await BGM.toggle(n);if(n&&!ok){console.log('BGM: HTMLAudio blocked, using WebAudio fallback');}};
   const mi=mode?MODES[mode]:null;
   const acc=ttR.current>0?Math.round(crR.current/ttR.current*100):0;
   const qMax=mi?mi.qt:Q_NORMAL;
@@ -803,7 +837,7 @@ function App(){
           style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 10px',color:'white',fontSize:11,fontWeight:900,backdropFilter:'blur(6px)'}}>
           🔍 음성
         </button>
-        <button onTouchStart={()=>BGM.unlock()} onClick={async()=>{await BGM.unlock();await toggleBGM();}} style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 12px',color:'white',fontSize:12,fontWeight:900,backdropFilter:'blur(6px)'}}>
+        <button onPointerDown={()=>BGM.unlock()} onClick={toggleBGM} style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 12px',color:'white',fontSize:12,fontWeight:900,backdropFilter:'blur(6px)'}}>
           {bgmOn?'🎵 ON':'🔇 OFF'}
         </button>
       </div>
