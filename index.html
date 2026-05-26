@@ -290,7 +290,7 @@ const wbSay=(txt,lang)=>{
   const go=()=>{
     const v=getVoice(c.vl);
     const u=new SpeechSynthesisUtterance(txt);
-    u.lang=c.vl; u.pitch=1.9; u.rate=lang==='zh'?_userSpd*1.2:_userSpd; u.volume=1;
+    u.lang=c.vl; u.pitch=1.5; u.rate=lang==='zh'?_userSpd*1.2:_userSpd; u.volume=1;
     if(v)u.voice=v;
     setTimeout(()=>window.speechSynthesis.speak(u),60);
   };
@@ -319,7 +319,7 @@ const wbSayAsync=(txt,lang)=>new Promise(resolve=>{
   const go=()=>{
     const v=getVoice(c.vl);
     const u=new SpeechSynthesisUtterance(txt);
-    u.lang=c.vl;u.pitch=1.9;u.rate=lang==='zh'?_userSpd*1.2:_userSpd;u.volume=1;
+    u.lang=c.vl;u.pitch=1.5;u.rate=lang==='zh'?_userSpd*1.2:_userSpd;u.volume=1;
     if(v)u.voice=v;
     u.onend=resolve;u.onerror=resolve;
     setTimeout(()=>window.speechSynthesis.speak(u),60);
