@@ -224,127 +224,150 @@ const T={
 };
 
 /* ═══════════════════════════════════════════════════════════
-   TTS  —  1순위: Google 번역 TTS (진짜 원어민 발음)
-           2순위: Web Speech API (기기 TTS 폴백)
-   Google TTS: 구글 번역 앱과 동일한 엔진. 기기 설치 불필요.
-               한국어·영어·중국어보통화·스페인어 모두 원어민 품질.
+   TTS 안정화 버전
+   - Google 번역 TTS 제거: 환경별 차단/타임아웃 때문에 갑자기 Web Speech로 떨어지는 문제 방지
+   - Web Speech API만 사용하되 브라우저/기기별 속도 보정
+   - Edge/Chrome/iPhone의 목소리는 완전히 같게 만들 수 없음
+     완전 동일 음성은 mp3 파일 또는 서버 TTS가 필요
 ═══════════════════════════════════════════════════════════ */
 
-// ── 목소리 캐시 (Chrome은 voiceschanged 전까지 빈 배열 반환) ──
+// ── 브라우저 / 기기 감지 ──
+const UA=navigator.userAgent;
+const _isIOS=/iPhone|iPad|iPod/i.test(UA);
+const _isAndroid=/Android/i.test(UA);
+const _isMobile=_isIOS||_isAndroid;
+const _isEdge=/Edg\//i.test(UA);
+const _isChrome=/Chrome|CriOS/i.test(UA)&&!_isEdge;
+
+// ── 목소리 캐시: Chrome/iPhone은 처음에 빈 배열이 자주 나옴 ──
 let _voices=[];
-// 모바일/PC 자동 감지 — 같은 값이어도 모바일이 더 빠르게 들림
-const _isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-let _userSpd=_isMobile?0.95:1.17;  // 모바일 0.95x / PC 1.17x
+let _voiceReady=false;
+
 const refreshVoices=()=>{
+  if(!window.speechSynthesis)return [];
   const vs=window.speechSynthesis.getVoices();
-  if(vs.length)_voices=vs;
+  if(vs&&vs.length){
+    _voices=vs;
+    _voiceReady=true;
+  }
   return _voices;
 };
 
-// Google TTS 언어 코드
-const GTTS={
-  ko:{tl:'ko'},
-  en:{tl:'en'},
-  zh:{tl:'zh-CN'}, // 보통화(Mandarin) 직접 지정
-  es:{tl:'es'},
+const waitVoices=()=>new Promise(resolve=>{
+  const v=refreshVoices();
+  if(v.length){resolve(v);return;}
+
+  let done=false;
+  const finish=()=>{
+    if(done)return;
+    done=true;
+    window.speechSynthesis?.removeEventListener('voiceschanged',finish);
+    resolve(refreshVoices());
+  };
+
+  window.speechSynthesis?.addEventListener('voiceschanged',finish);
+  setTimeout(finish,700);
+});
+
+// ── 언어/브라우저별 속도 보정값 ──
+// 숫자를 올리면 빨라지고, 내리면 느려짐
+const RATE_TABLE={
+  ko:{edge:1.05,chrome:0.95,ios:0.82,android:0.90,default:0.95},
+  en:{edge:1.05,chrome:0.98,ios:0.88,android:0.92,default:0.98},
+  zh:{edge:0.98,chrome:0.90,ios:0.78,android:0.86,default:0.90},
+  es:{edge:1.00,chrome:0.94,ios:0.84,android:0.90,default:0.94},
 };
 
-let _curAudio=null;
-let _gWorking=null; // null=미확인, true=성공, false=실패
-
-/* Google 번역 TTS — 기기 독립적인 원어민 발음 */
-const googleTTS=(txt,lang)=>{
-  const tl=GTTS[lang]?.tl||'en';
-  // ttsspeed 제거 — 일부 환경에서 URL 오류 유발
-  const url=`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(txt)}&tl=${tl}&client=tw-ob&ttsspeed=${Math.min(_userSpd*0.8,1.44).toFixed(2)}`;
-  if(_curAudio){_curAudio.pause();_curAudio.src='';}
-  const a=new Audio(url);
-  _curAudio=a;
-  a.volume=1;
-  return new Promise((res,rej)=>{
-    a.oncanplaythrough=()=>a.play().then(res).catch(rej);
-    a.onerror=rej;               // 오디오 로드 실패도 감지
-    a.onended=()=>{_curAudio=null;};
-    setTimeout(()=>rej(new Error('timeout')),4000); // 4초 내 응답 없으면 폴백
-  });
+const getRate=lang=>{
+  const row=RATE_TABLE[lang]||RATE_TABLE.ko;
+  if(_isIOS)return row.ios;
+  if(_isAndroid)return row.android;
+  if(_isEdge)return row.edge;
+  if(_isChrome)return row.chrome;
+  return row.default;
 };
 
-/* Web Speech API 폴백 */
-const isCanto=v=>/HK/i.test(v.lang)||/sin.ji|cantonese|yue/i.test(v.name);
-const getVoice=lc=>{
-  const vs=_voices.length?_voices:refreshVoices(); // 캐시 우선
+// ── 음성 선택: 같은 브라우저 안에서는 최대한 좋은 목소리를 고정 ──
+const isCanto=v=>/HK/i.test(v.lang)||/sin\.ji|cantonese|yue/i.test(v.name);
+
+const getVoice=(lc)=>{
+  const vs=_voices.length?_voices:refreshVoices();
   if(!vs.length)return null;
+
   const lg=lc.split('-')[0];
+
+  // 중국어는 광둥어/홍콩 음성 제외
   if(lc==='zh-CN'){
-    return vs.find(v=>v.lang==='zh-CN'&&!isCanto(v)&&/google/i.test(v.name))||
+    return vs.find(v=>v.lang==='zh-CN'&&!isCanto(v)&&/Microsoft|Google|Tingting|Meijia|Sinji/i.test(v.name))||
            vs.find(v=>v.lang==='zh-CN'&&!isCanto(v))||
-           vs.find(v=>v.lang.startsWith('zh')&&!isCanto(v))||null;
+           vs.find(v=>v.lang.startsWith('zh')&&!isCanto(v))||
+           null;
   }
-  // Google 목소리 우선 (Chrome: "Google US English", "Google 한국어" 등)
-  return vs.find(v=>v.lang===lc&&/google/i.test(v.name))||
+
+  // Edge는 Microsoft 음성, Chrome은 Google 음성, iPhone은 Apple 음성 우선
+  return vs.find(v=>v.lang===lc&&/Microsoft/i.test(v.name))||
+         vs.find(v=>v.lang===lc&&/Google/i.test(v.name))||
+         vs.find(v=>v.lang===lc&&/Yuna|Siri|Apple/i.test(v.name))||
          vs.find(v=>v.lang===lc)||
-         vs.find(v=>v.lang.startsWith(lg))||null;
-};
-const wbSay=(txt,lang)=>{
-  if(!window.speechSynthesis)return;
-  window.speechSynthesis.cancel();
-  const c=LC[lang];
-  const go=()=>{
-    const v=getVoice(c.vl);
-    const u=new SpeechSynthesisUtterance(txt);
-    u.lang=c.vl; u.pitch=1.5; u.rate=lang==='zh'?_userSpd*1.2:_userSpd; u.volume=1;
-    if(v)u.voice=v;
-    setTimeout(()=>window.speechSynthesis.speak(u),60);
-  };
-  // 캐시에 목소리 있으면 바로, 없으면 로드 대기
-  if(_voices.length){go();}
-  else{
-    const h=()=>{refreshVoices();window.speechSynthesis.removeEventListener('voiceschanged',h);go();};
-    window.speechSynthesis.addEventListener('voiceschanged',h);
-    setTimeout(()=>{refreshVoices();go();},1000);
-  }
+         vs.find(v=>v.lang.startsWith(lg))||
+         null;
 };
 
-/* 통합 say() — Google TTS 우선, 실패 시 Web Speech */
-const say=(txt,lang)=>{
-  if(_gWorking===false||!navigator.onLine){wbSay(txt,lang);return;}
-  googleTTS(txt,lang)
-    .then(()=>{_gWorking=true;})
-    .catch(()=>{_gWorking=false;wbSay(txt,lang);});
-};
+// ── 말하기 공통 함수 ──
+let _speakingToken=0;
 
-/* sayAsync — 음성이 완전히 끝날 때까지 기다리는 버전 (듣고맞추기 모드용) */
-const wbSayAsync=(txt,lang)=>new Promise(resolve=>{
+const speakWeb=(txt,lang,waitEnd=false)=>new Promise(async resolve=>{
   if(!window.speechSynthesis){resolve();return;}
+
+  const token=++_speakingToken;
+  const c=LC[lang]||LC.ko;
+
+  // 이전 음성이 겹치는 문제 방지
   window.speechSynthesis.cancel();
-  const c=LC[lang];
-  const go=()=>{
-    const v=getVoice(c.vl);
+
+  await waitVoices();
+
+  // cancel 직후 바로 speak하면 iPhone/Chrome에서 씹히는 경우가 있어 살짝 대기
+  setTimeout(()=>{
+    if(token!==_speakingToken){resolve();return;}
+
     const u=new SpeechSynthesisUtterance(txt);
-    u.lang=c.vl;u.pitch=1.5;u.rate=lang==='zh'?_userSpd*1.2:_userSpd;u.volume=1;
-    if(v)u.voice=v;
-    u.onend=resolve;u.onerror=resolve;
-    setTimeout(()=>window.speechSynthesis.speak(u),60);
-  };
-  _voices.length?go():(()=>{
-    const h=()=>{refreshVoices();window.speechSynthesis.removeEventListener('voiceschanged',h);go();};
-    window.speechSynthesis.addEventListener('voiceschanged',h);
-    setTimeout(()=>{refreshVoices();go();},800);
-  })();
+    u.lang=c.vl;
+    u.voice=getVoice(c.vl);
+    u.rate=getRate(lang);
+    u.pitch=_isIOS?1.0:1.05;
+    u.volume=1;
+
+    let ended=false;
+    const done=()=>{
+      if(ended)return;
+      ended=true;
+      resolve();
+    };
+
+    u.onend=done;
+    u.onerror=done;
+
+    try{
+      window.speechSynthesis.speak(u);
+    }catch(e){
+      done();
+    }
+
+    // 일부 모바일은 onend가 안 오는 경우가 있어 안전장치
+    setTimeout(done,Math.max(2500,txt.length*130));
+  },_isIOS?160:80);
 });
 
-const sayAsync=(txt,lang)=>new Promise(resolve=>{
-  if(_gWorking===false||!navigator.onLine){wbSayAsync(txt,lang).then(resolve);return;}
-  const tl=GTTS[lang]?.tl||'en';
-  const url=`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(txt)}&tl=${tl}&client=tw-ob&ttsspeed=${Math.min(_userSpd*0.8,1.44).toFixed(2)}`;
-  if(_curAudio){_curAudio.pause();_curAudio.src='';}
-  const a=new Audio(url);_curAudio=a;a.volume=1;
-  const done=()=>{_curAudio=null;resolve();};
-  a.onended=done;
-  a.onerror=()=>{_gWorking=false;wbSayAsync(txt,lang).then(resolve);};
-  a.oncanplaythrough=()=>a.play().then(()=>{_gWorking=true;}).catch(()=>{_gWorking=false;wbSayAsync(txt,lang).then(resolve);});
-  setTimeout(resolve,8000); // 최대 8초 안전 타임아웃
-});
+// 일반 음성
+const say=(txt,lang)=>{
+  speakWeb(txt,lang,false);
+};
+
+// 듣고 맞추기용: 음성이 끝날 때까지 기다림
+const sayAsync=(txt,lang)=>{
+  return speakWeb(txt,lang,true);
+};
 
 /* 언어별 생동감 있는 질문 문장 */
 const Q_STARTERS={
@@ -356,7 +379,7 @@ const Q_STARTERS={
 const qSentence=(a,op,b,l)=>{
   const w=OPW[l][op];
   const s=Q_STARTERS[l][Math.floor(Math.random()*Q_STARTERS[l].length)];
-  // 한국어: 쉼표로 끊기 → TTS가 각 숫자 따로 명확하게 읽음 (두 번째 숫자 묵음 버그 수정)
+  // 한국어: 쉼표로 끊기 → TTS가 각 숫자 따로 명확하게 읽음
   if(l==='ko')return`${s} ${a} ${w} ${b}. 얼마일까요?`;
   if(l==='en')return`${s} What is ${a} ${w} ${b}?`;
   if(l==='zh')return`${s} ${a} ${w} ${b} 等于多少呢？`;
