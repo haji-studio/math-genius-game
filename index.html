@@ -232,7 +232,9 @@ const T={
 
 // ── 목소리 캐시 (Chrome은 voiceschanged 전까지 빈 배열 반환) ──
 let _voices=[];
-let _userSpd=1.17;  // 고정 속도 1.17x
+// 모바일/PC 자동 감지 — 같은 값이어도 모바일이 더 빠르게 들림
+const _isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+let _userSpd=_isMobile?0.95:1.17;  // 모바일 0.95x / PC 1.17x
 const refreshVoices=()=>{
   const vs=window.speechSynthesis.getVoices();
   if(vs.length)_voices=vs;
