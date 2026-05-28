@@ -1,951 +1,1234 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<title>Haji Studio · Haji Mood Tarot</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+KR:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🌟 수학 천재 게임 - 성장 테스트</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
-:root{
-  --bg:#05030d;--panel:#0e0824;--panel2:#150a31;--gold:#C9A84C;--gold2:#E8D28A;
-  --txt:#F4EFE7;--muted:rgba(244,239,231,.58);--line:rgba(201,168,76,.22);
-  --violet:#7B4FBA;--violet2:#A279FF;--safe:#78D6B8;
-}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{min-height:100%}
-body{
-  font-family:"Noto Serif KR",Georgia,serif;color:var(--txt);max-width:430px;margin:0 auto;min-height:100vh;overflow-x:hidden;
-  background:
-    radial-gradient(circle at 50% -10%,rgba(123,79,186,.38),transparent 35%),
-    radial-gradient(circle at 0% 18%,rgba(201,168,76,.12),transparent 25%),
-    radial-gradient(circle at 100% 60%,rgba(123,79,186,.17),transparent 28%),
-    linear-gradient(180deg,#090516,#05030d 56%,#020106);
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
-}
-body:before{
-  content:"";position:fixed;inset:0;pointer-events:none;opacity:.42;z-index:-1;
-  background-image:
-    radial-gradient(circle,rgba(255,255,255,.7) 0 1px,transparent 1.5px),
-    radial-gradient(circle,rgba(232,210,138,.7) 0 1px,transparent 1.5px);
-  background-size:68px 68px,113px 113px;background-position:0 0,22px 34px;
-}
-button,input,select,textarea{font-family:inherit}
-button{cursor:pointer}
-.screen{display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:22px}
-.screen.show{display:flex}
-.btn{width:100%;border:none;border-radius:15px;padding:15px 14px;font-weight:700;font-size:15px;color:#07030f;background:linear-gradient(135deg,#C9A84C,#E8D28A);box-shadow:0 8px 26px rgba(201,168,76,.12);transition:.16s}
-.btn:active{transform:scale(.98)}
-.btn.ghost{background:transparent;color:var(--gold2);border:1px solid rgba(201,168,76,.25);box-shadow:none}
-.btn.purple{background:linear-gradient(135deg,#533AB7,#8E5AD8);color:#fff}
-.btn.dark{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid rgba(255,255,255,.08);box-shadow:none}
-.small{font-size:10.5px;color:var(--muted);line-height:1.65}
-.gold{color:var(--gold2)}
-.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:999;background:rgba(14,8,36,.96);border:1px solid rgba(201,168,76,.28);border-radius:999px;padding:10px 14px;font-size:11px;color:var(--gold2);box-shadow:0 8px 30px rgba(0,0,0,.5);display:none;white-space:nowrap}
+html,body{height:100%;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+body{font-family:'Nunito','Segoe UI',sans-serif;touch-action:manipulation;overscroll-behavior:none}
+button{cursor:pointer;font-family:'Nunito','Segoe UI',sans-serif;-webkit-tap-highlight-color:transparent;transition:transform 0.12s}
+button:active{transform:scale(0.92)!important}
 
-/* splash */
-.langbar{display:flex;gap:6px;margin-bottom:14px}
-.langbtn{border:1px solid var(--line);background:rgba(201,168,76,.06);color:var(--muted);border-radius:999px;padding:6px 11px;font-size:12px}
-.langbtn.on{background:rgba(201,168,76,.18);color:var(--gold2);border-color:var(--gold)}
-.crystal-wrap{position:relative;width:120px;height:130px;margin:0 auto 18px}
-.crystal{width:120px;height:120px;border-radius:50%;background:
-  radial-gradient(circle at 32% 28%,rgba(255,255,255,.95) 0%,rgba(232,210,138,.55) 10%,rgba(123,79,186,.7) 32%,rgba(40,13,116,.92) 68%,rgba(8,2,34,.99) 100%);
-  box-shadow:0 0 42px rgba(123,79,186,.72),0 0 92px rgba(201,168,76,.17),inset 7px 7px 18px rgba(255,255,255,.14),inset 0 -14px 26px rgba(0,0,0,.55);
-  animation:float 4s ease-in-out infinite,glow 3.6s ease-in-out infinite;position:relative;overflow:hidden}
-.crystal:before{content:"";position:absolute;top:9%;left:18%;width:26%;height:22%;border-radius:50%;background:radial-gradient(ellipse,rgba(255,255,255,.9),transparent 70%);transform:rotate(-30deg)}
-.crystal:after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(ellipse at 63% 67%,rgba(201,168,76,.26),transparent 46%),radial-gradient(ellipse at 34% 76%,rgba(213,107,154,.19),transparent 38%);animation:nebula 7s ease-in-out infinite alternate}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
-@keyframes glow{50%{box-shadow:0 0 62px rgba(145,96,244,.86),0 0 120px rgba(201,168,76,.22),inset 7px 7px 20px rgba(255,255,255,.2),inset 0 -14px 26px rgba(0,0,0,.55)}}
-@keyframes nebula{to{opacity:1;transform:rotate(18deg) scale(1.08)}}
-.crystal-shadow{width:82px;height:10px;margin:0 auto;border-radius:50%;background:radial-gradient(ellipse,rgba(123,79,186,.46),transparent 70%);animation:shadow 4s ease-in-out infinite}
-@keyframes shadow{50%{transform:scaleX(.64);opacity:.2}}
-.brand{font-family:Cinzel,serif;font-size:12px;letter-spacing:.25em;color:rgba(201,168,76,.54);margin-bottom:4px}
-.title{font-family:Cinzel,serif;font-weight:700;font-size:28px;letter-spacing:.08em;color:var(--gold);text-align:center}
-.subtitle{font-size:11px;color:rgba(201,168,76,.48);letter-spacing:.12em;text-align:center;margin:7px 0 18px}
-.disc-box{width:100%;max-width:350px;border:1px solid rgba(201,168,76,.25);background:rgba(201,168,76,.06);border-radius:20px;padding:18px;margin-bottom:16px;box-shadow:inset 0 0 34px rgba(201,168,76,.035)}
-.disc-main{font-size:14px;line-height:2;text-align:center}
-.disc-line{height:1px;background:rgba(201,168,76,.16);margin:13px 0}
-.safe-note{font-family:"Noto Sans KR",sans-serif;font-size:10.5px;line-height:1.75;color:rgba(232,210,138,.78);text-align:center}
-.appnote{font-family:"Noto Sans KR",sans-serif;font-size:9.5px;color:rgba(201,168,76,.42);text-align:center;line-height:1.6;margin-top:10px}
-
-/* onboarding */
-.ob-wrap{width:100%;max-width:370px}
-.ob-title{font-family:Cinzel,serif;font-size:23px;color:var(--gold);font-weight:700;text-align:center;margin-bottom:6px}
-.ob-sub{text-align:center;color:var(--muted);font-size:11px;margin-bottom:12px}
-.quick-note{margin:0 0 12px;padding:10px 12px;border:1px solid rgba(201,168,76,.18);background:rgba(201,168,76,.06);border-radius:13px;color:rgba(232,210,138,.82);font-size:10.5px;line-height:1.7;text-align:center}
-.label{display:block;font-family:"Noto Sans KR",sans-serif;font-size:10px;color:rgba(201,168,76,.7);letter-spacing:.08em;margin:11px 0 6px}
-.input,.select,.textarea{width:100%;background:rgba(14,8,36,.94);border:1px solid rgba(201,168,76,.24);border-radius:13px;color:var(--txt);padding:12px 13px;font-size:13px;outline:none}
-.select option{background:#0E0824;color:#F4EFE7}
-.textarea{height:56px;resize:none;line-height:1.55}
-.input:focus,.select:focus,.textarea:focus{border-color:rgba(201,168,76,.58)}
-.grid3{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:7px}
-.chipgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.pick{background:rgba(255,255,255,.035);border:1px solid rgba(201,168,76,.14);border-radius:12px;color:var(--muted);padding:10px 6px;font-size:11px;text-align:center}
-.pick.on{background:rgba(201,168,76,.16);color:var(--gold2);border-color:var(--gold)}
-.policy-card{background:rgba(120,214,184,.08);border:1px solid rgba(120,214,184,.24);border-radius:13px;padding:12px;margin:12px 0;color:rgba(218,255,246,.9);font-size:10.5px;line-height:1.7}
-
-/* main */
-#screen-main{padding:0;justify-content:flex-start;align-items:stretch}
-.hdr{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#12082A,#080414);border-bottom:1px solid rgba(201,168,76,.15);padding:12px 13px 10px;backdrop-filter:blur(10px)}
-.hdr-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.logo{font-family:Cinzel,serif;font-weight:700;letter-spacing:.1em;color:var(--gold);font-size:13px}
-.hdr-sub{font-size:8.5px;color:rgba(201,168,76,.45);margin-top:2px}
-.hdr-btns{display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-.hbtn{background:rgba(201,168,76,.09);border:1px solid rgba(201,168,76,.2);color:var(--gold2);border-radius:999px;padding:5px 9px;font-size:9px}
-.hbtn.premium{background:rgba(123,79,186,.22);color:#CDBAFF;border-color:rgba(123,79,186,.45)}
-.userline{font-size:9px;color:rgba(201,168,76,.48);margin-top:5px;line-height:1.5}
-.body{padding:12px 12px 110px;overflow-y:auto}
-.section-title{font-family:Cinzel,serif;font-size:9px;color:rgba(201,168,76,.6);letter-spacing:.14em;text-transform:uppercase;margin:12px 0 7px}
-.quota,.ribbon,.event-card,.guide-card,.result-card{border-radius:15px}
-.quota{display:flex;align-items:center;gap:8px;background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.14);padding:10px 12px;font-size:10.5px;color:var(--muted);margin-bottom:10px}
-.qdots{display:flex;gap:4px;margin-left:auto}
-.qdot{width:8px;height:8px;border-radius:50%;background:rgba(201,168,76,.18);border:1px solid rgba(201,168,76,.28)}
-.qdot.ok{background:var(--gold);box-shadow:0 0 6px rgba(201,168,76,.45)}
-.qdot.used{background:rgba(226,75,74,.42);border-color:rgba(226,75,74,.55)}
-.ribbon{border:1px solid rgba(120,214,184,.2);background:rgba(120,214,184,.07);padding:10px 12px;font-size:10.5px;color:rgba(218,255,246,.86);line-height:1.65;margin-bottom:10px}
-.event-card{position:relative;overflow:hidden;border:1px solid rgba(213,107,154,.22);background:radial-gradient(circle at 12% 0%,rgba(213,107,154,.22),transparent 26%),rgba(213,107,154,.06);padding:11px 12px;font-size:11px;line-height:1.65;color:rgba(255,229,240,.9);margin:10px 0}
-.event-card b{color:#FFD6E7}
-.deckmode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.deckmode-btn{border:1px solid rgba(201,168,76,.16);background:rgba(255,255,255,.035);color:var(--muted);border-radius:14px;padding:11px 8px;text-align:center}
-.deckmode-btn.on{color:var(--gold2);border-color:var(--gold);background:linear-gradient(135deg,rgba(201,168,76,.18),rgba(123,79,186,.15));box-shadow:0 0 18px rgba(201,168,76,.08) inset}
-.deckmode-btn b{display:block;font-size:12px;margin-bottom:3px}
-.deckmode-btn span{display:block;font-size:8.5px;color:rgba(232,210,138,.55);line-height:1.4}
-.deck-tip{font-size:10px;color:rgba(232,210,138,.68);text-align:center;margin:2px 0 10px}
-.guide-card{border:1px solid rgba(201,168,76,.22);background:radial-gradient(circle at 15% 0%,rgba(201,168,76,.12),transparent 32%),radial-gradient(circle at 90% 20%,rgba(123,79,186,.16),transparent 28%),rgba(14,8,36,.74);padding:13px;margin:12px 0}
-.guide-title{color:var(--gold);font-weight:700;font-size:13px;margin-bottom:9px;display:flex;justify-content:space-between;gap:8px;align-items:center}
-.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.guide-box{border:1px solid rgba(201,168,76,.15);background:rgba(255,255,255,.035);border-radius:13px;padding:10px}
-.guide-box b{color:var(--gold2);font-size:11.5px}
-.guide-box p{color:rgba(244,239,231,.72);font-size:10px;line-height:1.65;margin-top:5px}
-.stog,.modegrid,.catgrid{display:grid;gap:6px}
-.stog{grid-template-columns:repeat(3,1fr)}
-.modegrid{grid-template-columns:repeat(3,1fr)}
-.catgrid{grid-template-columns:repeat(2,1fr)}
-.stbtn,.modebtn,.catbtn{border:1px solid rgba(201,168,76,.14);background:rgba(255,255,255,.035);border-radius:13px;color:var(--muted);transition:.16s;text-align:center}
-.stbtn{padding:12px 4px}
-.modebtn{padding:11px 6px;font-size:10.5px;line-height:1.25}
-.catbtn{padding:12px 4px;font-size:10px}
-.stbtn.on,.modebtn.on,.catbtn.on{background:rgba(201,168,76,.16);border-color:var(--gold);color:var(--gold2)}
-.si,.ci{display:block;font-size:15px;margin-bottom:2px}.sn{display:block;font-size:9.5px;font-weight:700}.ss{display:block;font-size:7.5px;color:rgba(201,168,76,.48);margin-top:1px}
-.deck-wrap{text-align:center;padding:12px 0 8px}
-.deck-stack{position:relative;width:92px;height:136px;margin:0 auto 10px;transition:.25s}
-.deck-wrap:hover .deck-stack{transform:translateY(-4px)}
-.dc{position:absolute;width:86px;height:132px;border-radius:10px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.55)}
-.dc1{transform:rotate(-8deg) translateX(-16px)}.dc2{transform:rotate(-2deg) translateX(-4px)}.dc3{transform:rotate(5deg) translateX(9px)}
-.deck-hint{font-size:10px;color:rgba(201,168,76,.48)}
-.backsvg{width:100%;height:100%}
-.srow{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:11px 0}
-.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0;justify-items:center}
-.slot{display:flex;flex-direction:column;align-items:center;gap:4px}
-.card-outer{border-radius:10px;overflow:hidden;position:relative;box-shadow:0 0 0 1.5px var(--gold),0 0 18px rgba(201,168,76,.18),0 7px 20px rgba(0,0,0,.62);transition:.3s;background:#080412}
-.card-outer:not(.flipped-done):hover{transform:translateY(-5px) scale(1.03)}
-.card-outer.flipped-done{transform:translateY(-4px)}
-.size1{width:184px;height:294px}.size3{width:106px;height:170px}.size6{width:96px;height:154px}
-.cflip{width:100%;height:100%;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.4,0,.2,1)}
-.cflip.flipped{transform:rotateY(180deg)}
-.cback,.cfront{position:absolute;inset:0;backface-visibility:hidden;border-radius:10px;overflow:hidden}
-.cfront{transform:rotateY(180deg)}
-.card-face{width:100%;height:100%;position:relative;background:#080412;padding:0;overflow:hidden}
-.tarot-img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;filter:saturate(1.08) contrast(1.05) brightness(.94)}
-.tarot-fallback{width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:radial-gradient(circle at 50% 30%,rgba(232,210,138,.18),transparent 34%),linear-gradient(180deg,var(--c1),#090414)}
-.card-face:before{content:"";position:absolute;inset:3px;border:1.5px solid rgba(232,210,138,.72);border-radius:8px;z-index:3;pointer-events:none}
-.card-face:after{content:"";position:absolute;inset:8px;border:1px solid rgba(232,210,138,.22);border-radius:5px;z-index:3;pointer-events:none}
-.card-roman{position:absolute;top:8px;left:0;right:0;font-family:Cinzel,serif;font-size:8px;color:var(--gold2);letter-spacing:.08em;z-index:2}
-.card-emoji{font-size:28px;filter:drop-shadow(0 0 8px rgba(255,255,255,.18));z-index:2}
-.card-name{font-size:8.5px;color:var(--gold2);font-weight:700;line-height:1.25;margin-top:6px;z-index:2}
-.card-kw{font-size:6.8px;color:rgba(244,239,231,.65);margin-top:3px;z-index:2}
-.card-caption{position:absolute;left:7px;right:7px;bottom:7px;z-index:4;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.78) 35%,rgba(0,0,0,.88));padding:18px 4px 5px;text-align:center;border-radius:0 0 6px 6px}
-.card-caption .card-name{font-size:8px;margin:0;color:#F1D37A;text-shadow:0 1px 2px rgba(0,0,0,.8)}
-.card-caption .card-kw{font-size:6px;color:rgba(244,239,231,.78)}
-.pos-lbl{font-family:Cinzel,serif;font-size:7.5px;color:var(--muted);text-align:center;line-height:1.25;max-width:78px}
-.fptxt{text-align:center;color:var(--muted);font-size:9px;margin:6px 0 2px}
-.fprow{display:flex;justify-content:center;gap:5px;margin-bottom:5px}.fpdot{width:6px;height:6px;border-radius:50%;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.28)}.fpdot.done{background:var(--gold);box-shadow:0 0 6px rgba(201,168,76,.5)}
-.result-card{background:rgba(14,8,36,.92);border:1px solid rgba(201,168,76,.22);padding:14px;margin:10px 0}
-.result-title{display:flex;align-items:center;gap:6px;font-family:Cinzel,serif;font-size:12px;color:var(--gold);margin-bottom:8px}
-.badge{margin-left:auto;border:1px solid rgba(201,168,76,.18);background:rgba(201,168,76,.08);color:var(--gold2);border-radius:999px;padding:3px 8px;font-size:8.5px;font-family:"Noto Sans KR",sans-serif}
-.result-text{font-size:13.4px;line-height:2.05;color:rgba(244,239,231,.92);word-break:keep-all}
-.result-long{margin-top:9px;padding-top:9px;border-top:1px solid rgba(201,168,76,.11);font-size:12.4px;color:rgba(244,239,231,.86);line-height:2;word-break:keep-all}
-.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}.chip{font-size:9px;border:1px solid rgba(201,168,76,.16);background:rgba(201,168,76,.08);border-radius:999px;color:var(--gold2);padding:3px 8px}
-.memory-box,.story-box,.advice-card,.warning-card,.shadow-card{border-radius:13px;padding:11px 12px;margin-top:8px;font-size:11px;line-height:1.85}
-.memory-box{border:1px solid rgba(123,79,186,.25);background:rgba(123,79,186,.08);color:#D7C9FF}
-.story-box{border:1px solid rgba(213,107,154,.24);background:rgba(213,107,154,.08);color:#FFD6E7}
-.advice-card{border:1px solid rgba(120,214,184,.22);background:rgba(120,214,184,.07);color:rgba(218,255,246,.9)}
-.warning-card{border:1px solid rgba(226,75,74,.28);background:linear-gradient(135deg,rgba(226,75,74,.10),rgba(201,168,76,.05));color:rgba(255,226,226,.94)}
-.shadow-card{border:1px solid rgba(213,107,154,.30);background:linear-gradient(135deg,rgba(213,107,154,.11),rgba(123,79,186,.08));color:rgba(255,226,240,.95)}
-.quote-card{margin-top:10px;border:1px solid rgba(201,168,76,.25);background:radial-gradient(circle at 0% 0%,rgba(201,168,76,.15),transparent 33%),linear-gradient(135deg,rgba(14,8,36,.95),rgba(31,12,63,.82));border-left:3px solid var(--gold);border-radius:0 14px 14px 0;padding:13px}
-.quote-head{display:flex;align-items:center;gap:7px;color:var(--gold);font-family:Cinzel,serif;font-size:10px;letter-spacing:.08em;margin-bottom:8px}
-.quote-txt{color:rgba(244,239,231,.92);font-size:12.5px;line-height:1.85;font-style:italic;word-break:keep-all}
-.quote-author{margin-top:8px;color:rgba(232,210,138,.72);font-size:9.5px;text-align:right}
-.action-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.modal-bg{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.78);display:flex;align-items:flex-end;justify-content:center;padding:0 8px 8px;backdrop-filter:blur(7px)}
-.paycard{background:linear-gradient(180deg,#0E0824,#130A2E);border:1px solid rgba(201,168,76,.28);border-radius:18px;padding:15px;width:100%;max-width:430px;max-height:92vh;overflow:auto}
-.paytitle{font-family:Cinzel,serif;font-size:14px;color:var(--gold);text-align:center;margin-bottom:4px}
-.paysub{text-align:center;font-size:9.5px;color:rgba(201,168,76,.5);margin-bottom:10px}
-.payamt{background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:11px;padding:10px;text-align:center;margin-bottom:10px}.paynum{font-family:Cinzel,serif;font-weight:700;font-size:26px;color:var(--gold)}
-.payrow{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(255,255,255,.06);padding:5px 0;font-size:10px;color:rgba(244,239,231,.65)}.payrow span:last-child{color:var(--gold2);white-space:nowrap}
-.hero{background:linear-gradient(180deg,#1A0840,#0E0824 55%,rgba(5,3,13,.96));border:1px solid rgba(201,168,76,.19);border-radius:16px;overflow:hidden;margin:8px 0;position:relative}
-.hero:before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 80% 45% at 50% 10%,rgba(123,79,186,.44),transparent 66%);pointer-events:none}
-.hero-cards{position:relative;z-index:1;display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding:18px 10px 10px}
-.hero-slot{text-align:center}.hmini{width:78px;height:125px;border-radius:8px;overflow:hidden;border:1px solid var(--gold);box-shadow:0 0 16px rgba(201,168,76,.25);margin:auto}.hmini .card-caption .card-name{font-size:5.5px}.hmini .card-caption .card-kw{display:none}
-.hcname{font-size:7px;color:var(--gold2);margin-top:4px;max-width:82px;line-height:1.2}
-.hero-title{position:relative;z-index:1;text-align:center;font-family:Cinzel,serif;font-size:18px;color:var(--gold);font-weight:700;padding:5px 10px 9px}
-.hero-msg{position:relative;z-index:1;font-size:12.7px;line-height:2;padding:13px 15px;background:rgba(0,0,0,.18);border-top:1px solid rgba(201,168,76,.12);border-bottom:1px solid rgba(201,168,76,.12);word-break:keep-all}
-.insight{margin:11px 14px;padding:11px 12px;border:1px solid rgba(201,168,76,.28);background:rgba(201,168,76,.08);border-radius:12px;text-align:center;position:relative;z-index:1}.insight-lbl{font-family:Cinzel,serif;color:rgba(201,168,76,.66);font-size:8.5px;letter-spacing:.12em;margin-bottom:4px}.insight-txt{font-size:12.5px;color:var(--gold2);line-height:1.7}
-.lucky{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 14px 12px;position:relative;z-index:1}.lk{background:rgba(14,8,36,.75);border:1px solid rgba(201,168,76,.16);border-radius:10px;padding:8px 4px;text-align:center}.lki{font-size:15px}.lkl{font-size:7px;color:var(--muted)}.lkv{font-size:11px;color:var(--gold2);font-weight:700}
-.accord{padding:0 14px 13px;position:relative;z-index:1}.acc{border:1px solid rgba(201,168,76,.12);border-radius:11px;margin-bottom:6px;overflow:hidden}.acc-h{display:flex;align-items:center;gap:6px;padding:9px;background:rgba(255,255,255,.035)}.acc-p{font-family:Cinzel,serif;font-size:7px;color:var(--gold);background:rgba(201,168,76,.1);border-radius:999px;padding:2px 6px}.acc-n{font-size:10.5px;color:var(--gold2);flex:1}.acc-b{display:none;padding:0 9px 9px}.acc-b.open{display:block}.acc-sec{margin-top:7px}.acc-sl{font-family:Cinzel,serif;font-size:7.5px;color:var(--gold);margin-bottom:3px}.acc-st{font-size:10.7px;line-height:1.8;color:rgba(244,239,231,.85)}
-.share{padding:0 14px 13px;position:relative;z-index:1}.share-lbl{text-align:center;font-family:Cinzel,serif;font-size:8.5px;color:rgba(201,168,76,.5);letter-spacing:.13em;margin-bottom:7px}.share-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.share-btns .btn{padding-left:8px;padding-right:8px;font-size:11px}
-.footer{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:rgba(5,3,13,.92);backdrop-filter:blur(8px);border-top:1px solid rgba(201,168,76,.12);padding:8px 12px;text-align:center;font-size:9px;color:rgba(201,168,76,.46);line-height:1.55;z-index:40}
-.sub-overlay{position:fixed;inset:0;z-index:210;background:rgba(0,0,0,.82);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(7px)}.sub-sheet{width:100%;max-width:430px;background:linear-gradient(180deg,#0E0824,#150A31);border-top:1px solid rgba(201,168,76,.3);border-radius:22px 22px 0 0;padding:21px 19px 32px;animation:slideUp .3s ease}@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}.sub-bar{width:34px;height:3px;background:rgba(255,255,255,.12);border-radius:2px;margin:0 auto 16px}.sub-ttl{font-family:Cinzel,serif;font-size:18px;color:var(--gold);text-align:center;font-weight:700;margin-bottom:4px}.sub-desc{text-align:center;font-size:10.5px;color:var(--muted);margin-bottom:15px}.plan{border:1px solid rgba(201,168,76,.18);background:rgba(255,255,255,.035);border-radius:14px;padding:12px 13px;margin-bottom:8px}.plan.rec{border:1.5px solid var(--gold);background:rgba(201,168,76,.07)}.plan.rec:before{content:"추천";position:absolute;top:-9px;right:13px;background:var(--gold);color:#07030f;font-weight:700;font-size:9px;padding:2px 9px;border-radius:999px}.plan-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}.plan-name{font-size:12.5px;font-weight:700}.plan-price{font-family:Cinzel,serif;font-size:16px;font-weight:700;color:var(--gold)}.plan-feat{font-size:10px;color:var(--muted);padding:2px 0}.plan-feat.ok{color:rgba(232,210,138,.9)}
-@media (max-width:360px){.size1{width:164px;height:262px}.size3{width:94px;height:150px}.size6{width:88px;height:140px}.sgrid{gap:6px}.modegrid{grid-template-columns:repeat(3,1fr)}.catgrid{grid-template-columns:repeat(2,1fr)}}
+@keyframes starPop{0%{opacity:1;transform:translateY(0)scale(1)}100%{opacity:0;transform:translateY(-120px)scale(2.3)}}
+@keyframes scoreFloat{0%{opacity:1;transform:translateX(-50%)translateY(0)scale(1)}100%{opacity:0;transform:translateX(-50%)translateY(-80px)scale(1.2)}}
+@keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-11px)}35%{transform:translateX(11px)}55%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes levelUp{0%{opacity:0;transform:scale(0.3)rotate(-15deg)}60%{transform:scale(1.18)rotate(4deg)}100%{opacity:1;transform:scale(1)rotate(0)}}
+@keyframes timerWarn{0%,100%{opacity:1}50%{opacity:0.5}}
+@keyframes popIn{0%{opacity:0;transform:scale(0.4)}70%{transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+@keyframes floatA{0%,100%{transform:translateY(0)rotate(-4deg)}50%{transform:translateY(-13px)rotate(4deg)}}
+@keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-17px)}}
+@keyframes floatC{0%,100%{transform:translateY(0)rotate(6deg)}50%{transform:translateY(-9px)rotate(-6deg)}}
+@keyframes listenBeat{0%,100%{transform:scale(1);filter:drop-shadow(0 0 6px rgba(255,255,255,0.4))}50%{transform:scale(1.14);filter:drop-shadow(0 0 18px rgba(255,255,255,0.8))}}
+@keyframes homeBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes petDance{0%,100%{transform:translateY(0)rotate(-2deg)scale(1)}35%{transform:translateY(-12px)rotate(5deg)scale(1.08)}70%{transform:translateY(-4px)rotate(-5deg)scale(1.03)}}
+@keyframes sparkleRing{0%{opacity:0;transform:scale(0.55)}45%{opacity:1}100%{opacity:0;transform:scale(1.7)}}
+@keyframes resultGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(255,255,255,0.45))}50%{filter:drop-shadow(0 0 24px rgba(255,255,255,0.9))}}
 </style>
 </head>
 <body>
-<div id="toast" class="toast"></div>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useRef,useEffect,useCallback}=React;
 
-<section id="screen-disc" class="screen show">
-  <div class="langbar">
-    <button class="langbtn on" data-lang="KO">🇰🇷 KO</button><button class="langbtn" data-lang="EN">🇺🇸 EN</button><button class="langbtn" data-lang="CN">🇨🇳 CN</button>
-  </div>
-  <div class="crystal-wrap"><div class="crystal"></div><div class="crystal-shadow"></div></div>
-  <div class="brand">HAJI STUDIO</div>
-  <div class="title">HAJI MOOD</div>
-  <div class="subtitle">정교한 타로 카드 · 감정 메시지 · 명언 카드</div>
-  <div class="disc-box">
-    <div class="disc-main" id="discMain">오늘의 감정을 카드로 정리하고<br><strong class="gold">나를 이해하는 작은 의식</strong>을 시작해보세요.</div>
-    <div class="disc-line"></div>
-    <div class="safe-note" id="safeNote"><strong>오락·자기성찰 콘텐츠입니다.</strong><br>본 앱은 미래 예측, 운명 보장, 투자·의료·법률 판단을 제공하지 않습니다.</div>
-  </div>
-  <button class="btn" id="startBtn">✦ 감정 오라클 시작하기 ✦</button>
-  <div class="appnote" id="audioHint">화면을 한 번 터치하면 몽환 BGM이 시작됩니다.</div>
-  <div class="appnote" id="featureNote">78장 전체 덱 · 실제 타로 카드 이미지 · 긴 메시지 · 명언 & 조언 카드 · SNS 공유</div>
-</section>
+/* ═══════════════════════════════════════════════════════════
+   BGM  —  Web Audio API, pentatonic melody
+═══════════════════════════════════════════════════════════ */
+const BGM=(()=>{
+  let audio=null;
+  let playing=false;
+  let ctx=null,master=null,tid=null;
 
-<section id="screen-onboard" class="screen">
-  <div class="ob-wrap">
-    <div class="ob-title">Personal Ritual</div>
-    <div class="ob-sub" id="obSub">정보 입력은 선택입니다. 기록은 이 기기 안에만 저장됩니다.</div>
-    <div class="quick-note" id="quickNote">닉네임을 넣으면 결과와 저장 포토카드에 이름이 들어갑니다.<br>고민을 적으면 그 문장을 중심으로 리딩 문장이 더 개인화됩니다.</div>
-    <label class="label" id="nameLabel">닉네임, 선택</label>
-    <input id="obName" class="input" maxlength="12" placeholder="예) 별빛, 하준아빠">
-    <div class="input-help" id="nameHelp">입력 시 포토카드에 “For 별빛”처럼 표시됩니다. 원치 않으면 비워두세요.</div>
-    <label class="label" id="moodLabel">지금 감정, 선택</label>
-    <div class="chipgrid" id="moodPick"></div>
-    <label class="label" id="concernLabel">한 줄 고민, 선택</label>
-    <textarea id="obConcern" class="textarea" maxlength="80" placeholder="예) 이 관계를 계속 이어가도 괜찮을까?"></textarea>
-    <div class="input-help" id="concernHelp">현재 Beta는 입력한 고민을 결과 문장에 반영합니다. 실제 AI 상담 수준의 깊은 맞춤 분석은 다음 단계에서 연결 예정입니다.</div>
-    <div class="policy-card" id="policyCard">🛡️ 이 앱은 오락·자기성찰 콘텐츠입니다. 미래를 단정하거나 투자·의료·법률 판단을 제공하지 않습니다.</div>
-    <button class="btn" id="goMainBtn" onclick="goMain()">내 정보로 리딩 시작 →</button>
-    <button class="btn ghost" id="skipBtn" style="margin-top:7px" onclick="goMain(true)">정보 없이 바로 시작</button>
-  </div>
-</section>
+  const MEL=[
+    [523,0.22],[659,0.22],[784,0.22],[880,0.44],
+    [784,0.22],[659,0.22],[587,0.22],[659,0.44],
+    [523,0.22],[659,0.22],[784,0.22],[1047,0.44],
+    [880,0.22],[784,0.22],[659,0.66],[523,0.66],
+    [659,0.22],[784,0.22],[880,0.22],[784,0.22],
+    [659,0.22],[523,0.22],[587,0.22],[659,0.44],
+    [784,0.22],[659,0.22],[523,0.88],
+  ];
 
-<section id="screen-main" class="screen">
-  <header class="hdr">
-    <div class="hdr-row">
-      <div><div class="logo">✦ HAJI STUDIO</div><div class="hdr-sub">Haji Mood Tarot</div></div>
-      <div class="hdr-btns">
-        <button class="hbtn" onclick="toggleSound()" id="sndBtn">🔊</button>
-        <button class="hbtn" onclick="showDiary()">📖 기록</button>
-        <button class="hbtn" onclick="openFeedback()">📝 피드백</button>
-        <button class="hbtn premium" onclick="showSub()">👑 Pro</button>
+  // iPhone Safari 대응 핵심:
+  // WebAudio 멜로디가 막히는 기기에서는 HTMLAudio(data wav)를 먼저 재생한다.
+  // 파일 서버 없이 GitHub Pages 단일 html에서도 동작하도록 BGM wav를 브라우저에서 직접 만든다.
+  const makeBgmUrl=()=>{
+    const sr=22050;
+    const totalSec=7.2;
+    const len=Math.floor(sr*totalSec);
+    const samples=new Int16Array(len);
+    let pos=0;
+    const addNote=(freq,dur)=>{
+      const n=Math.floor(sr*dur);
+      for(let i=0;i<n && pos+i<len;i++){
+        const t=i/sr;
+        const env=Math.min(1,i/(sr*0.025))*Math.min(1,(n-i)/(sr*0.08));
+        const v=Math.sin(2*Math.PI*freq*t)*0.24*env;
+        samples[pos+i]=Math.max(-32767,Math.min(32767,Math.floor(v*32767)));
+      }
+      pos+=n;
+    };
+    while(pos<len){MEL.forEach(([f,d])=>addNote(f,d));}
+    const dataBytes=samples.length*2;
+    const buffer=new ArrayBuffer(44+dataBytes);
+    const view=new DataView(buffer);
+    const write=(off,str)=>{for(let i=0;i<str.length;i++)view.setUint8(off+i,str.charCodeAt(i));};
+    write(0,'RIFF');view.setUint32(4,36+dataBytes,true);write(8,'WAVE');
+    write(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);
+    view.setUint16(22,1,true);view.setUint32(24,sr,true);view.setUint32(28,sr*2,true);
+    view.setUint16(32,2,true);view.setUint16(34,16,true);
+    write(36,'data');view.setUint32(40,dataBytes,true);
+    let off=44;for(let i=0;i<samples.length;i++,off+=2)view.setInt16(off,samples[i],true);
+    let binary='';const bytes=new Uint8Array(buffer);const chunk=0x8000;
+    for(let i=0;i<bytes.length;i+=chunk){binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));}
+    return 'data:audio/wav;base64,'+btoa(binary);
+  };
+
+  const ensureAudio=()=>{
+    if(audio)return audio;
+    audio=new Audio(makeBgmUrl());
+    audio.loop=true;
+    audio.volume=0.42;          // 모바일에서 너무 작게 들리는 문제 보정
+    audio.preload='auto';
+    audio.setAttribute('playsinline','');
+    audio.setAttribute('webkit-playsinline','');
+    return audio;
+  };
+
+  const ensureCtx=()=>{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return null;
+    if(!ctx||ctx.state==='closed'){
+      ctx=new AC();
+      master=ctx.createGain();master.gain.value=0.22;master.connect(ctx.destination);
+    }
+    return ctx;
+  };
+  const note=(f,d,t)=>{
+    if(!ctx||!master)return;
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(master);
+    o.type='sine';o.frequency.value=f;
+    g.gain.setValueAtTime(0.0,t);
+    g.gain.linearRampToValueAtTime(0.24,t+0.02);
+    g.gain.setTargetAtTime(0.0,t+d*0.65,0.07);
+    o.start(t);o.stop(t+d+0.1);
+  };
+  const loopWebAudio=async()=>{
+    if(!playing)return;
+    ensureCtx();
+    if(!ctx)return;
+    try{if(ctx.state==='suspended')await ctx.resume();}catch(e){}
+    if(ctx.state!=='running')return;
+    let t=ctx.currentTime+0.05;
+    MEL.forEach(([f,d])=>{note(f,d,t);t+=d;});
+    clearTimeout(tid);
+    tid=setTimeout(loopWebAudio,Math.max(200,(t-ctx.currentTime-0.04)*1000));
+  };
+
+  return{
+    async unlock(){
+      try{
+        const a=ensureAudio();
+        a.load();
+      }catch(e){}
+      try{ensureCtx(); if(ctx&&ctx.state==='suspended')await ctx.resume();}catch(e){}
+    },
+    async start(){
+      playing=true;
+      clearTimeout(tid);
+      const a=ensureAudio();
+      try{
+        a.currentTime=0;
+        await a.play();
+        return true;
+      }catch(e){
+        // HTMLAudio가 막힌 경우 마지막 안전망으로 WebAudio BGM 사용
+        loopWebAudio();
+        setTimeout(()=>{if(playing)loopWebAudio();},120);
+        return false;
+      }
+    },
+    stop(){
+      playing=false;
+      clearTimeout(tid);
+      if(audio){try{audio.pause();audio.currentTime=0;}catch(e){}}
+      if(master&&ctx){
+        master.gain.cancelScheduledValues(ctx.currentTime);
+        master.gain.setTargetAtTime(0,ctx.currentTime,0.18);
+        setTimeout(()=>{if(master&&!playing)master.gain.value=0.22;},350);
+      }
+    },
+    async toggle(on){return on?await this.start():(this.stop(),true);},
+    isUnlocked(){return !!(audio)||!!(ctx&&ctx.state==='running');}
+  };
+})();;
+
+// iPhone/Safari 오디오 잠금 해제: 첫 터치에서 BGM용 AudioContext를 준비
+const unlockAudioOnce=()=>{BGM.unlock();refreshVoices?.();};
+window.addEventListener('pointerdown',unlockAudioOnce,{once:true,passive:true});
+window.addEventListener('touchstart',unlockAudioOnce,{once:true,passive:true});
+
+
+
+/* ═══════════════════════════════════════════════════════════
+   SFX — 모바일 대응 Web Audio 효과음
+═══════════════════════════════════════════════════════════ */
+const SFX=(()=>{
+  let ctx=null,master=null;
+  const ensure=async()=>{
+    if(!ctx){
+      ctx=new(window.AudioContext||window.webkitAudioContext)();
+      master=ctx.createGain();master.gain.value=0.22;master.connect(ctx.destination);
+    }
+    if(ctx.state==='suspended')await ctx.resume();
+    return ctx;
+  };
+  const beep=async(freq=660,dur=0.12,type='sine',gain=0.22,delay=0)=>{
+    try{
+      await ensure();
+      const t=ctx.currentTime+delay;
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type=type;o.frequency.setValueAtTime(freq,t);
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(gain,t+0.01);
+      g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+0.03);
+    }catch(e){}
+  };
+  return{
+    unlock:ensure,
+    correct(){beep(740,0.10,'triangle',0.22,0);beep(988,0.13,'triangle',0.18,0.08);},
+    wrong(){beep(220,0.18,'sawtooth',0.16,0);beep(160,0.22,'sawtooth',0.12,0.12);},
+    combo(){beep(660,0.08,'square',0.13,0);beep(880,0.08,'square',0.13,0.06);beep(1180,0.12,'square',0.12,0.12);},
+    level(){beep(523,0.10,'triangle',0.18,0);beep(659,0.10,'triangle',0.18,0.09);beep(784,0.12,'triangle',0.18,0.18);beep(1047,0.20,'triangle',0.18,0.29);},
+    fanfare(){beep(523,0.12,'triangle',0.16,0);beep(659,0.12,'triangle',0.16,0.12);beep(784,0.12,'triangle',0.16,0.24);beep(1047,0.28,'triangle',0.18,0.38);},
+  };
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   Constants
+═══════════════════════════════════════════════════════════ */
+const Q_NORMAL=10,Q_HARD=8,Q_SPEED=6;
+
+const LEVELS=[
+  {level:1,ops:['+'],        max:9,   base:10,label:'입문',en:'Starter',zh:'入门',es:'Inicio'},
+  {level:2,ops:['+','-'],    max:10,  base:12,label:'초급',en:'Easy',   zh:'初级',es:'Fácil'},
+  {level:3,ops:['+','-'],    max:20,  base:15,label:'중급',en:'Medium', zh:'中级',es:'Medio'},
+  {level:4,ops:['+','-','×'],max:20,  base:20,timesMax:5,label:'고급',en:'Hard',zh:'高级',es:'Difícil'},
+  {level:5,ops:['+','-','×','÷'],max:50, base:28,label:'도전',en:'Expert',zh:'挑战',es:'Experto'},
+  {level:6,ops:['+','-','×','÷'],max:100,base:38,label:'천재',en:'Genius',zh:'天才',es:'Genio'},
+];
+
+// Lv.7 이상 무한 레벨 이름
+const INF_LABELS={
+  ko:['초월','전설','신화','반신','신','우주신','∞신'],
+  en:['Legend','Master','Supreme','Divine','God','Cosmic','∞'],
+  zh:['超越','传奇','神话','半神','神','宇宙神','∞'],
+  es:['Leyenda','Maestro','Supremo','Divino','Dios','Cósmico','∞'],
+};
+
+// 어떤 레벨이든 설정값 반환 (Lv.7+는 동적 생성)
+const getLvCfg=lv=>{
+  if(lv<=5)return LEVELS[lv];
+  const x=lv-5; // 천재 이후 단계 수
+  return{
+    ops:['+','-','×','÷'],
+    max:Math.min(100+x*50,9999),      // 숫자 범위 증가 (최대 9999)
+    timesMax:Math.min(9+x*2,99),       // 곱하기 범위 증가
+    base:38+x*10,                      // 기본 점수 증가
+  };
+};
+
+// 타이머: 레벨 7부터 0.5초씩 감소, 최소 4초
+const getQTimer=(mId,lv)=>{
+  const base=MODES[mId]?.qt||Q_NORMAL;
+  if(lv<=5)return base;
+  return Math.max(base-(lv-5)*0.5,4);
+};
+
+// 레벨 이름 (모든 언어 지원)
+const lvLabel=(lv,l)=>{
+  if(lv<=5){const d=LEVELS[lv];return l==='ko'?d.label:l==='zh'?d.zh:l==='es'?d.es:d.en;}
+  const idx=Math.min(lv-6,(INF_LABELS[l||'ko']||INF_LABELS.en).length-1);
+  return(INF_LABELS[l||'ko']||INF_LABELS.en)[idx];
+};
+
+const LC={
+  ko:{name:'한국어',   sub:'Korean',  flag:'🇰🇷',vl:'ko-KR',pitch:2.0,rate:1.9},
+  en:{name:'English',  sub:'영어',    flag:'🇺🇸',vl:'en-US',pitch:2.0,rate:1.9},
+  zh:{name:'中文',     sub:'Mandarin',flag:'🇨🇳',vl:'zh-CN',pitch:1.9,rate:1.9},
+  es:{name:'Español',  sub:'Spanish', flag:'🇪🇸',vl:'es-ES',pitch:2.0,rate:1.9},
+};
+
+const OPW={
+  ko:{'+':'더하기','-':'빼기','×':'곱하기','÷':'나누기'},
+  en:{'+':'plus',   '-':'minus','×':'times', '÷':'divided by'},
+  zh:{'+':'加',     '-':'减',   '×':'乘以',  '÷':'除以'},
+  es:{'+':'más',    '-':'menos','×':'por',   '÷':'entre'},
+};
+
+/* ═══════════════════════════════════════════════════════════
+   Feedback phrases
+═══════════════════════════════════════════════════════════ */
+const PH={
+  cSpeak:{
+    ko:['정답이에요!','맞았어요!','훌륭해요!','완벽해요!','대단해요!','최고예요!','브라보!'],
+    en:['Correct!','Great job!','Awesome!','Perfect!','Amazing!','Excellent!','Wonderful!'],
+    zh:['正确！','答对了！','太棒了！','完美！','厉害！','真棒！','好极了！'],
+    es:['¡Correcto!','¡Muy bien!','¡Perfecto!','¡Increíble!','¡Excelente!','¡Fantástico!'],
+  },
+  cUI:{
+    ko:['정답이에요! 🎉','맞았어요! ⭐','훌륭해요! 🌟','완벽해요! 💯','대단해요! 🏆','최고예요! 👑'],
+    en:['Correct! 🎉','Great job! ⭐','Awesome! 🌟','Perfect! 💯','Amazing! 🏆','Excellent! 👑'],
+    zh:['正确！🎉','答对了！⭐','太棒了！🌟','完美！💯','厉害！🏆','真棒！👑'],
+    es:['¡Correcto! 🎉','¡Muy bien! ⭐','¡Perfecto! 💯','¡Increíble! 🏆','¡Excelente! 🌟'],
+  },
+  wSpeak:{
+    ko:['틀렸어요!','아쉬워요!','다시 해봐요!','조금만 더 생각해요!'],
+    en:['Wrong!','Not quite!','Try again!','Almost!'],
+    zh:['错了！','差一点！','再试试！','加油！'],
+    es:['¡Incorrecto!','¡Casi!','¡Inténtalo!','¡Ánimo!'],
+  },
+  wUI:{
+    ko:['틀렸어요! 😢','아쉬워요! 😅','다시 해봐요! 🤔'],
+    en:['Wrong! 😢','Not quite! 😅','Try again! 🤔'],
+    zh:['错了！😢','差一点！😅','再试试！🤔'],
+    es:['¡Incorrecto! 😢','¡Casi! 😅','¡Inténtalo! 🤔'],
+  },
+  to:{
+    ko:['시간이 다 됐어요!','더 빨리 해봐요!'],
+    en:["Time's up!",'Be faster!'],
+    zh:['时间到了！','快一点！'],
+    es:['¡Tiempo!','¡Más rápido!'],
+  },
+  over:{
+    ko:['수고했어요! 다시 도전해봐요!','정말 잘했어요!'],
+    en:['Good effort! Try again!','Well done!'],
+    zh:['辛苦了！再来一次！','做得很好！'],
+    es:['¡Buen esfuerzo!','¡Bien hecho!'],
+  },
+  up:{
+    ko:['레벨 올라갔어요! 대단해요!','축하해요! 다음 레벨!'],
+    en:['Level up! Amazing!','Woohoo! Next level!'],
+    zh:['升级了！太棒了！','恭喜升级！'],
+    es:['¡Subiste de nivel!','¡Felicidades!'],
+  },
+};
+const rnd=(o,l)=>o[l][Math.floor(Math.random()*o[l].length)];
+
+/* ── UI 전체 번역 ── */
+const T={
+  score:   {ko:'점수',    en:'Score',  zh:'得分',  es:'Pts'},
+  level:   {ko:'레벨',    en:'Level',  zh:'等级',  es:'Nivel'},
+  lives:   {ko:'남은기회', en:'Lives',  zh:'剩余机会',es:'Vidas'},
+  timeL:   {ko:'남은시간', en:'Time',   zh:'时间',  es:'Tiempo'},
+  home:    {ko:'홈',      en:'Home',   zh:'首页',  es:'Inicio'},
+  replay:  {ko:'다시 듣기',en:'Replay', zh:'再听',  es:'Repetir'},
+  readV:   {ko:'음성으로 읽어줘요',en:'Tap to hear',zh:'点击朗读',es:'Escuchar'},
+  listen:  {ko:'잘 들어봐요!',en:'Listen carefully!',zh:'认真听！',es:'¡Escucha!'},
+  toLvUp:  (n,l)=>({ko:`레벨업까지 ${n}개`,en:`${n} to level up`,zh:`距升级还差${n}题`,es:`${n} para subir`}[l]),
+  lvUpMsg: (lv,lb,l)=>({ko:`🎉 레벨 업! Lv.${lv} ${lb}! 🎉`,en:`🎉 Level Up! Lv.${lv}! 🎉`,zh:`🎉 升级了！Lv.${lv}！🎉`,es:`🎉 ¡Nivel ${lv}! 🎉`}[l]),
+  wrongA:  (a,l)=>({ko:`정답: ${a}`,en:`Answer: ${a}`,zh:`答案: ${a}`,es:`Resp: ${a}`}[l]),
+  comboT:  (n,l)=>({ko:`🔥 ${n}콤보!`,en:`🔥 ${n} Combo!`,zh:`🔥 ${n}连击！`,es:`🔥 ¡${n} combo!`}[l]),
+  secT:    (n,l)=>({ko:`${n}초`,en:`${n}s`,zh:`${n}秒`,es:`${n}s`}[l]),
+  gameEnd: {ko:'게임 종료! 🎉',en:'Game Over! 🎉',zh:'游戏结束！🎉',es:'¡Fin del juego! 🎉'},
+  retry:   {ko:'🔄 다시 도전!',en:'🔄 Try Again!',zh:'🔄 再来一次！',es:'🔄 ¡Otra vez!'},
+  goHome:  {ko:'🏠 홈으로',en:'🏠 Home',zh:'🏠 首页',es:'🏠 Inicio'},
+  resLbls: (l)=>[
+    [l==='ko'?'🎯 점수':l==='en'?'🎯 Score':l==='zh'?'🎯 得分':'🎯 Pts'],
+    [l==='ko'?'✅ 정답':l==='en'?'✅ Correct':l==='zh'?'✅ 正确':'✅ Acierto'],
+    [l==='ko'?'📊 정확도':l==='en'?'📊 Accuracy':l==='zh'?'📊 准确率':'📊 Precisión'],
+    [l==='ko'?'📈 레벨':l==='en'?'📈 Level':l==='zh'?'📈 等级':'📈 Nivel'],
+    [l==='ko'?'🔥 콤보':l==='en'?'🔥 Combo':l==='zh'?'🔥 连击':'🔥 Combo'],
+    [l==='ko'?'📝 총':l==='en'?'📝 Total':l==='zh'?'📝 总计':'📝 Total'],
+  ],
+};
+
+/* ═══════════════════════════════════════════════════════════
+   TTS 안정화 버전
+   - Google 번역 TTS 제거: 환경별 차단/타임아웃 때문에 갑자기 Web Speech로 떨어지는 문제 방지
+   - Web Speech API만 사용하되 브라우저/기기별 속도 보정
+   - Edge/Chrome/iPhone의 목소리는 완전히 같게 만들 수 없음
+     완전 동일 음성은 mp3 파일 또는 서버 TTS가 필요
+═══════════════════════════════════════════════════════════ */
+
+// ── 브라우저 / 기기 감지 ──
+const UA=navigator.userAgent;
+const _isIOS=/iPhone|iPad|iPod/i.test(UA);
+const _isAndroid=/Android/i.test(UA);
+const _isMobile=_isIOS||_isAndroid;
+const _isEdge=/Edg\//i.test(UA);
+const _isChrome=/Chrome|CriOS/i.test(UA)&&!_isEdge;
+
+// ── 목소리 캐시: Chrome/iPhone은 처음에 빈 배열이 자주 나옴 ──
+let _voices=[];
+let _voiceReady=false;
+
+const refreshVoices=()=>{
+  if(!window.speechSynthesis)return [];
+  const vs=window.speechSynthesis.getVoices();
+  if(vs&&vs.length){
+    _voices=vs;
+    _voiceReady=true;
+  }
+  return _voices;
+};
+
+const waitVoices=()=>new Promise(resolve=>{
+  const v=refreshVoices();
+  if(v.length){resolve(v);return;}
+
+  let done=false;
+  const finish=()=>{
+    if(done)return;
+    done=true;
+    window.speechSynthesis?.removeEventListener('voiceschanged',finish);
+    resolve(refreshVoices());
+  };
+
+  window.speechSynthesis?.addEventListener('voiceschanged',finish);
+  setTimeout(finish,700);
+});
+
+// ── 언어/브라우저별 속도 보정값 ──
+// 숫자를 올리면 빨라지고, 내리면 느려짐
+const RATE_TABLE={
+  ko:{edge:1.05,chrome:0.95,ios:0.82,android:0.90,default:0.95},
+  en:{edge:1.05,chrome:0.98,ios:0.88,android:0.92,default:0.98},
+  zh:{edge:0.98,chrome:0.90,ios:0.78,android:0.86,default:0.90},
+  es:{edge:1.00,chrome:0.94,ios:0.84,android:0.90,default:0.94},
+};
+
+const getRate=lang=>{
+  const row=RATE_TABLE[lang]||RATE_TABLE.ko;
+  if(_isIOS)return row.ios;
+  if(_isAndroid)return row.android;
+  if(_isEdge)return row.edge;
+  if(_isChrome)return row.chrome;
+  return row.default;
+};
+
+// ── 음성 선택: 같은 브라우저 안에서는 최대한 좋은 목소리를 고정 ──
+const isCanto=v=>/HK/i.test(v.lang)||/sin\.ji|cantonese|yue/i.test(v.name);
+
+const getVoice=(lc)=>{
+  const vs=_voices.length?_voices:refreshVoices();
+  if(!vs.length)return null;
+
+  const lg=lc.split('-')[0];
+
+  // 중국어는 광둥어/홍콩 음성 제외
+  if(lc==='zh-CN'){
+    return vs.find(v=>v.lang==='zh-CN'&&!isCanto(v)&&/Microsoft|Google|Tingting|Meijia|Sinji/i.test(v.name))||
+           vs.find(v=>v.lang==='zh-CN'&&!isCanto(v))||
+           vs.find(v=>v.lang.startsWith('zh')&&!isCanto(v))||
+           null;
+  }
+
+  // Edge는 Microsoft 음성, Chrome은 Google 음성, iPhone은 Apple 음성 우선
+  return vs.find(v=>v.lang===lc&&/Microsoft/i.test(v.name))||
+         vs.find(v=>v.lang===lc&&/Google/i.test(v.name))||
+         vs.find(v=>v.lang===lc&&/Yuna|Siri|Apple/i.test(v.name))||
+         vs.find(v=>v.lang===lc)||
+         vs.find(v=>v.lang.startsWith(lg))||
+         null;
+};
+
+// ── 말하기 공통 함수 ──
+let _speakingToken=0;
+
+const speakWeb=(txt,lang,waitEnd=false)=>new Promise(async resolve=>{
+  if(!window.speechSynthesis){resolve();return;}
+
+  const token=++_speakingToken;
+  const c=LC[lang]||LC.ko;
+
+  // 이전 음성이 겹치는 문제 방지
+  window.speechSynthesis.cancel();
+
+  await waitVoices();
+
+  // cancel 직후 바로 speak하면 iPhone/Chrome에서 씹히는 경우가 있어 살짝 대기
+  setTimeout(()=>{
+    if(token!==_speakingToken){resolve();return;}
+
+    const u=new SpeechSynthesisUtterance(txt);
+    u.lang=c.vl;
+    u.voice=getVoice(c.vl);
+    u.rate=getRate(lang);
+    u.pitch=_isIOS?1.0:1.05;
+    u.volume=1;
+
+    let ended=false;
+    const done=()=>{
+      if(ended)return;
+      ended=true;
+      resolve();
+    };
+
+    u.onend=done;
+    u.onerror=done;
+
+    try{
+      window.speechSynthesis.speak(u);
+    }catch(e){
+      done();
+    }
+
+    // 일부 모바일은 onend가 안 오는 경우가 있어 안전장치
+    setTimeout(done,Math.max(2500,txt.length*130));
+  },_isIOS?160:80);
+});
+
+// 일반 음성
+const say=(txt,lang)=>{
+  speakWeb(txt,lang,false);
+};
+
+// 듣고 맞추기용: 음성이 끝날 때까지 기다림
+const sayAsync=(txt,lang)=>{
+  return speakWeb(txt,lang,true);
+};
+
+/* 언어별 생동감 있는 질문 문장 */
+const Q_STARTERS={
+  ko:['자,','다음은,','이번엔,','그럼,','자 이제,'],
+  en:['Quick!','Ready?','Here we go!','Solve it!','Listen up!'],
+  zh:['小朋友！','来答题！','想一想！','快点！','加油！'],
+  es:['¡Vamos!','¡Rápido!','¡Escucha!','¡Adelante!','¡A pensar!'],
+};
+const qSentence=(a,op,b,l)=>{
+  const w=OPW[l][op];
+  const s=Q_STARTERS[l][Math.floor(Math.random()*Q_STARTERS[l].length)];
+  // 한국어: 쉼표로 끊기 → TTS가 각 숫자 따로 명확하게 읽음
+  if(l==='ko')return`${s} ${a} ${w} ${b}. 얼마일까요?`;
+  if(l==='en')return`${s} What is ${a} ${w} ${b}?`;
+  if(l==='zh')return`${s} ${a} ${w} ${b} 等于多少呢？`;
+  return`${s} ¿Cuánto es ${a} ${w} ${b}?`;
+};
+
+/* ═══════════════════════════════════════════════════════════
+   Question generator
+═══════════════════════════════════════════════════════════ */
+const genQ=lv=>{
+  const c=getLvCfg(lv);  // 무한 레벨 지원
+  const op=c.ops[Math.floor(Math.random()*c.ops.length)];
+  let a,b,ans;
+  if(op==='+'){a=Math.floor(Math.random()*c.max)+1;b=Math.floor(Math.random()*c.max)+1;ans=a+b;}
+  else if(op==='-'){a=Math.floor(Math.random()*c.max)+2;b=Math.floor(Math.random()*(a-1))+1;ans=a-b;}
+  else if(op==='×'){const m=c.timesMax||9;a=Math.floor(Math.random()*m)+2;b=Math.floor(Math.random()*m)+2;ans=a*b;}
+  else{b=Math.floor(Math.random()*8)+2;ans=Math.floor(Math.random()*8)+2;a=b*ans;}
+  const s=new Set([ans]);let t=0;
+  while(s.size<4&&t<100){t++;const w=ans+(Math.floor(Math.random()*14)-7);if(w!==ans&&w>=0&&!s.has(w))s.add(w);}
+  while(s.size<4)s.add(ans+s.size*6+4);
+  return{a,op,b,answer:ans,choices:[...s].sort(()=>Math.random()-0.5)};
+};
+
+/* ═══════════════════════════════════════════════════════════
+   Mode configs
+═══════════════════════════════════════════════════════════ */
+const MODES={
+  normal:{id:'normal',icon:'🌈',title:{ko:'보통 모드',en:'Normal',zh:'普通',es:'Normal'},
+    lives:5,qt:Q_NORMAL,startLv:0,
+    desc:{ko:'더하기 빼기 · 5번 기회',en:'Add & Subtract · 5 lives',zh:'加减法 · 5条命',es:'Suma/Resta · 5 vidas'},
+    badge:'FREE',bc:'#22C55E',
+  },
+  hard:{id:'hard',icon:'🔥',title:{ko:'하드 모드',en:'Hard',zh:'困难',es:'Difícil'},
+    lives:3,qt:Q_HARD,startLv:3,
+    desc:{ko:'곱하기 나누기 · 3번 기회',en:'Mult & Divide · 3 lives',zh:'乘除法 · 3条命',es:'Mult/Div · 3 vidas'},
+    badge:'🔥도전',bc:'#EF4444',
+  },
+  time:{id:'time',icon:'⏱️',title:{ko:'타임 어택',en:'Time Attack',zh:'限时',es:'Contra Reloj'},
+    lives:99,qt:Q_NORMAL,startLv:0,
+    desc:{ko:'60초 안에 최대한!',en:'Max score in 60s!',zh:'60秒最高分！',es:'¡Máx en 60s!'},
+    badge:'FREE',bc:'#3B82F6',
+  },
+  listen:{id:'listen',icon:'👂',title:{ko:'듣고 맞추기',en:'Listen First',zh:'听音答题',es:'Escucha'},
+    lives:5,qt:Q_NORMAL,startLv:0,
+    desc:{ko:'소리 듣고 숫자 확인!',en:'Hear it, then see it!',zh:'先听后看！',es:'¡Escucha primero!'},
+    badge:'NEW',bc:'#8B5CF6',
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   Colours
+═══════════════════════════════════════════════════════════ */
+const BG={
+  sky:   'linear-gradient(145deg,#22D3EE,#0EA5E9)',
+  green: 'linear-gradient(145deg,#4ADE80,#16A34A)',
+  red:   'linear-gradient(145deg,#F87171,#DC2626)',
+  amber: 'linear-gradient(145deg,#FCD34D,#F59E0B)',
+};
+const STARS_CHARS=['⭐','🌟','✨','💫','🎉','🌸'];
+const STARS_COLS=['#FFD700','#FF6B6B','#4ECDC4','#96E6A1','#F093FB','#45B7D1','#FF9A9E'];
+
+/* ═══════════════════════════════════════════════════════════
+   UI Components
+═══════════════════════════════════════════════════════════ */
+function NumBox({val,color}){
+  const n=String(val).length;
+  const fs=n>3?18:n>2?24:32;
+  return(
+    <div style={{minWidth:60,height:60,background:'#FFFFFF',borderRadius:16,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 8px',boxShadow:'0 4px 14px rgba(0,0,0,0.15)',border:'3px solid rgba(255,255,255,1)'}}>
+      <span style={{fontSize:fs,fontWeight:900,color:color||'#0369A1',fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{val}</span>
+    </div>
+  );
+}
+function OpBox({op}){
+  const col={'+':'#3B82F6','-':'#F43F5E','×':'#A855F7','÷':'#10B981'}[op]||'#F59E0B';
+  return(
+    <div style={{width:44,height:44,background:col,borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:`0 3px 10px ${col}66`}}>
+      <span style={{fontSize:24,fontWeight:900,color:'white',fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{op}</span>
+    </div>
+  );
+}
+function TimerBar({val,max,lang}){
+  const pct=(val/max)*100;
+  const col=pct>55?'#22C55E':pct>28?'#EAB308':'#EF4444';
+  const urgent=pct<=28;
+  const secLabel=T.secT(val,lang||'ko');
+  return(
+    <div style={{width:'100%'}}>
+      <div style={{background:'rgba(0,0,0,0.18)',borderRadius:20,height:26,overflow:'hidden',position:'relative',boxShadow:'inset 0 2px 6px rgba(0,0,0,0.18)'}}>
+        <div style={{position:'absolute',right:0,top:0,bottom:0,width:`${pct}%`,background:col,transition:'width 1s linear,background 0.4s',animation:urgent?'timerWarn 0.44s ease-in-out infinite':'none'}}/>
+        <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',zIndex:2,fontSize:13,fontWeight:900,color:'white',textShadow:'0 1px 4px rgba(0,0,0,0.6)',fontFamily:"'Nunito',sans-serif"}}>⏰ {secLabel}</div>
       </div>
     </div>
-    <div class="userline" id="userInfo"></div>
-  </header>
-
-  <main class="body">
-    <div class="quota"><span>🌙 Real Reading Beta</span><div class="qdots" id="qdots"></div></div>
-    <div class="ribbon" id="memoryRibbon">처음 방문하셨다면, 오늘의 감정을 하나 남겨보세요. 다음 리딩부터 흐름을 이어서 보여드립니다.</div>
-    <div class="event-card" id="timeEvent"></div>
-
-    <div class="section-title">무엇이 궁금한가요?</div>
-    <div class="catgrid" id="catgrid"></div>
-
-    <div class="section-title">어떻게 볼까요?</div>
-    <div class="stog">
-      <button class="stbtn on" id="st1" onclick="setN(1)"><span class="si">🪞</span><span class="sn">오늘의 한 장</span><span class="ss">빠른 메시지</span></button>
-      <button class="stbtn" id="st3" onclick="setN(3)"><span class="si">🃏</span><span class="sn">3장 흐름</span><span class="ss">현재·흐름·조언</span></button>
-      <button class="stbtn" id="st6" onclick="setN(6)"><span class="si">🎴</span><span class="sn">6장 심층</span><span class="ss">리얼 리딩</span></button>
+  );
+}
+function Hearts({lives,max}){
+  const sz=max>=5?17:22;
+  return(
+    <div style={{display:'flex',gap:2,flexWrap:'wrap',justifyContent:'center'}}>
+      {Array.from({length:max}).map((_,i)=>(
+        <span key={i} style={{fontSize:sz,filter:i<lives?'none':'grayscale(1)',opacity:i<lives?1:0.2,transition:'all 0.3s'}}>❤️</span>
+      ))}
     </div>
+  );
+}
 
-    <div class="deck-tip" id="deckTip">기본은 실제 타로에 가까운 78장 전체 덱입니다. 결과에는 위로, 현실 지적, 그림자 메시지가 함께 반영됩니다.</div>
 
-    <div class="section-title">카드 뽑기</div>
-    <div class="deck-wrap" onclick="startSpread()">
-      <div class="deck-stack"><div class="dc dc1" id="dk1"></div><div class="dc dc2" id="dk2"></div><div class="dc dc3" id="dk3"></div></div>
-      <div class="deck-hint" id="deckHint">카드를 뽑아 오늘의 메시지를 확인하세요</div>
+const PETS=[
+  {min:1,emoji:'🥚',name:{ko:'천재 알',en:'Genius Egg',zh:'天才蛋',es:'Huevo Genio'},msg:{ko:'막 깨어날 준비 중!',en:'Ready to hatch!',zh:'准备孵化！',es:'¡Listo para nacer!'}},
+  {min:2,emoji:'🐣',name:{ko:'아기 병아리',en:'Baby Chick',zh:'小鸡',es:'Pollito'},msg:{ko:'정답을 먹고 자라요',en:'Grows with answers',zh:'靠答题成长',es:'Crece con aciertos'}},
+  {min:4,emoji:'🐱',name:{ko:'수학 고양이',en:'Math Cat',zh:'数学猫',es:'Gato Mate'},msg:{ko:'콤보를 좋아해요',en:'Loves combos',zh:'喜欢连击',es:'Ama combos'}},
+  {min:7,emoji:'🦖',name:{ko:'공룡 박사',en:'Dino Doctor',zh:'恐龙博士',es:'Dino Doctor'},msg:{ko:'어려운 문제도 와앙!',en:'Crunches hard problems',zh:'难题也能吃掉',es:'Devora problemas'}},
+  {min:11,emoji:'🧙',name:{ko:'수학 마법사',en:'Math Wizard',zh:'数学魔法师',es:'Mago Mate'},msg:{ko:'숫자 마법 발동',en:'Number magic on',zh:'数字魔法启动',es:'Magia numérica'}},
+  {min:16,emoji:'🚀',name:{ko:'우주 천재',en:'Cosmic Genius',zh:'宇宙天才',es:'Genio Cósmico'},msg:{ko:'은하계 계산왕',en:'Galaxy calculator',zh:'银河计算王',es:'Rey galáctico'}},
+];
+const getPet=(gameLv)=>[...PETS].reverse().find(p=>gameLv>=p.min)||PETS[0];
+const getGrade=(score,acc)=>score>=900&&acc>=80?'S+':score>=600?'S':score>=350?'A':score>=150?'B':'C';
+function PetCard({pet,lang,compact=false,pulse=false,combo=0,score=0}){
+  return(
+    <div style={{position:'relative',background:'rgba(255,255,255,0.24)',border:'2px solid rgba(255,255,255,0.5)',borderRadius:compact?18:24,padding:compact?'8px 12px':'12px 16px',display:'flex',alignItems:'center',gap:compact?8:12,boxShadow:'0 4px 16px rgba(0,0,0,0.10)',backdropFilter:'blur(8px)',overflow:'hidden'}}>
+      {pulse&&<div style={{position:'absolute',left:compact?16:20,top:compact?10:12,width:compact?42:56,height:compact?42:56,borderRadius:'50%',border:'3px solid rgba(255,255,255,0.75)',animation:'sparkleRing 0.8s ease-out forwards'}}/>}
+      <div style={{fontSize:compact?34:48,animation:pulse?'petDance 0.8s ease-out':'floatB 4s ease-in-out infinite',zIndex:1}}>{pet.emoji}</div>
+      <div style={{zIndex:1,minWidth:0}}>
+        <div style={{fontSize:compact?13:16,fontWeight:900,color:'white',textShadow:'0 2px 8px rgba(0,0,0,0.22)'}}>{pet.name[lang]||pet.name.ko}</div>
+        <div style={{fontSize:compact?10:12,fontWeight:800,color:'rgba(255,255,255,0.86)'}}>{pet.msg[lang]||pet.msg.ko}</div>
+        {!compact&&<div style={{marginTop:5,fontSize:11,fontWeight:900,color:'#FFF7AD'}}>⭐ 성장 점수 {score} · 🔥 {combo}콤보</div>}
+      </div>
     </div>
-    <div id="spreadArea"></div><div id="resultArea"></div>
-  </main>
-  <div class="footer" id="footerNote">오락·자기성찰 목적 · 실제 미래를 예측하거나 결과를 보장하지 않습니다 · Haji Studio</div>
-</section>
-
-<div class="sub-overlay" id="subOverlay">
-  <div class="sub-sheet">
-    <div class="sub-bar"></div>
-    <div class="sub-ttl">Haji Mood Pro</div>
-    <div class="sub-desc">Beta 시즌에는 결제 장벽을 낮추고 반응을 먼저 확인합니다. 현재는 Pro 기능도 무료 데모로 열어둡니다.</div>
-    <div class="plan rec" onclick="pickPlan('beta')"><div class="plan-row"><span class="plan-name">Beta 무료 체험</span><span class="plan-price">₩0</span></div><div class="plan-feat ok">✓ 1장·3장·6장 모두 무료 테스트</div><div class="plan-feat ok">✓ 명언 카드 저장 + 감정 리포트 포함</div><div class="plan-feat ok">✓ 출시 전 피드백 수집용</div></div>
-    <div class="plan" onclick="pickPlan('monthly')"><div class="plan-row"><span class="plan-name">월간 Pro 예정</span><span class="plan-price">₩2,900/월</span></div><div class="plan-feat ok">✓ 정식 출시 후 검토 가격</div><div class="plan-feat ok">✓ 무제한 리딩 + 히스토리 확장</div></div>
-    <button class="btn" id="subConfirmBtn" onclick="confirmSub()">Beta 무료로 열기</button>
-    <button class="btn dark" style="margin-top:7px" onclick="hideSub()">나중에 하기</button>
-  </div>
-</div>
-
-<script>
-'use strict';
-function $(id){return document.getElementById(id)}
-function toast(msg){var t=$('toast');t.textContent=msg;t.style.display='block';setTimeout(function(){t.style.display='none'},2200)}
-function htmlEscape(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
-function storeGet(){try{return JSON.parse(localStorage.getItem('haji_mood_v35')||'{"readings":[]}')}catch(e){return {readings:[]}}}
-function storeSet(s){localStorage.setItem('haji_mood_v35',JSON.stringify(s))}
-function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('show'));$(id).classList.add('show')}
-
-/* audio */
-var bgm={
-  ctx:null,on:true,started:false,master:null,osc:[],timers:[],
-  init:function(){
-    try{
-      var AC=window.AudioContext||window.webkitAudioContext;
-      if(!AC||this.ctx)return;
-      this.ctx=new AC();
-      this.master=this.ctx.createGain();
-      this.master.gain.value=this.on?.38:0;
-      this.master.connect(this.ctx.destination);
-    }catch(e){console.log('audio init failed',e)}
-  },
-  makeReverb:function(seconds){
-    try{
-      var c=this.ctx.createConvolver();
-      var len=this.ctx.sampleRate*(seconds||2.8);
-      var buf=this.ctx.createBuffer(2,len,this.ctx.sampleRate);
-      for(var ch=0;ch<2;ch++){
-        var data=buf.getChannelData(ch);
-        for(var i=0;i<len;i++) data[i]=(Math.random()*2-1)*Math.pow(1-i/len,1.7);
-      }
-      c.buffer=buf;return c;
-    }catch(e){return null}
-  },
-  pad:function(freq,vol,detune){
-    if(!this.ctx||!this.master)return;
-    try{
-      var o=this.ctx.createOscillator(),g=this.ctx.createGain(),lfo=this.ctx.createOscillator(),lg=this.ctx.createGain();
-      o.type='sine';o.frequency.value=freq;o.detune.value=detune||0;
-      lfo.type='sine';lfo.frequency.value=.04+Math.random()*.06;lg.gain.value=freq*.006;
-      lfo.connect(lg);lg.connect(o.frequency);
-      g.gain.value=0;
-      o.connect(g);g.connect(this.master);
-      o.start();lfo.start();
-      g.gain.linearRampToValueAtTime(vol,this.ctx.currentTime+2.2);
-      this.osc.push(o,lfo);
-    }catch(e){}
-  },
-  bell:function(freq){
-    if(!this.ctx||!this.master||!this.on)return;
-    try{
-      var o=this.ctx.createOscillator(),g=this.ctx.createGain(),rv=this.makeReverb(2.2);
-      o.type='sine';o.frequency.value=freq;
-      var t=this.ctx.currentTime;
-      g.gain.setValueAtTime(0,t);
-      g.gain.linearRampToValueAtTime(.24,t+.04);
-      g.gain.exponentialRampToValueAtTime(.001,t+2.1);
-      o.connect(g);
-      if(rv){g.connect(rv);rv.connect(this.master)}else g.connect(this.master);
-      o.start(t);o.stop(t+2.3);
-    }catch(e){}
-  },
-  scheduleBells:function(){
-    var self=this,notes=[261.6,293.7,329.6,392,440,493.9,523.3,659.3,783.9];
-    function loop(){
-      if(!self.started)return;
-      if(self.on) self.bell(notes[Math.floor(Math.random()*notes.length)]);
-      var id=setTimeout(loop,850+Math.random()*1800);
-      self.timers.push(id);
-    }
-    loop();
-  },
-  start:function(){
-    if(!this.ctx||this.started)return;
-    this.started=true;
-    this.pad(55,.145,0);this.pad(110,.105,-5);this.pad(164.8,.075,4);this.pad(220,.055,0);this.pad(329.6,.032,7);
-    this.scheduleBells();
-    toast('몽환 BGM 재생 중 🎵');
-  },
-  sfx:function(type){
-    if(!this.on||!this.ctx)return;
-    try{
-      var notes=type==='deep'?[261.6,329.6,392,523.3,659.3]:[440,554.4,659.3];
-      notes.forEach((f,i)=>{var o=this.ctx.createOscillator(),g=this.ctx.createGain(),t=this.ctx.currentTime+i*.08;o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.15,t+.03);g.gain.exponentialRampToValueAtTime(.001,t+.65);o.connect(g);g.connect(this.ctx.destination);o.start(t);o.stop(t+.8)})
-    }catch(e){}
-  },
-  setOn:function(v){
-    this.on=v;
-    if(this.master)this.master.gain.value=v?.38:0;
-  }
-};
-async function startAudio(){try{bgm.init();if(bgm.ctx&&bgm.ctx.state==='suspended')await bgm.ctx.resume();bgm.setOn(true);bgm.start()}catch(e){console.log(e)}}
-function toggleSound(){bgm.init();bgm.setOn(!bgm.on);if(bgm.ctx&&bgm.ctx.state==='suspended')bgm.ctx.resume();$('sndBtn').textContent=bgm.on?'🔊':'🔇';toast(bgm.on?'사운드 켜짐':'사운드 꺼짐')}
-
-/* data */
-var IMG_BASE='https://www.sacred-texts.com/tarot/pkt/img/';
-var MAJOR=[
- ['광대','0','시작·모험','🌄','#1A3870','ar00'],['마법사','I','의지·창조','🪄','#6A1320','ar01'],['여사제','II','직관·비밀','🌙','#0D1E5A','ar02'],['황후','III','풍요·돌봄','🌺','#6B2B58','ar03'],
- ['황제','IV','질서·책임','👑','#713B18','ar04'],['교황','V','믿음·규칙','🕯️','#3C2D68','ar05'],['연인','VI','선택·관계','💞','#8B2F62','ar06'],['전차','VII','추진·승리','🏆','#09275A','ar07'],
- ['힘','VIII','용기·인내','🦁','#6F5A08','ar08'],['은둔자','IX','내면·거리두기','🧙','#20394A','ar09'],['운명의 바퀴','X','전환·흐름','🌀','#2B155C','ar10'],['정의','XI','균형·판단','⚖️','#6A1212','ar11'],
- ['매달린 남자','XII','멈춤·관점','🪢','#25465A','ar12'],['죽음','XIII','끝맺음·전환','🦋','#101010','ar13'],['절제','XIV','조율·회복','🏺','#2F4F4F','ar14'],['악마','XV','집착·욕망','⛓️','#3A0819','ar15'],
- ['탑','XVI','충격·해체','⚡','#210707','ar16'],['별','XVII','희망·치유','⭐','#08265A','ar17'],['달','XVIII','불안·직감','🌕','#071431','ar18'],['태양','XIX','활력·확신','☀️','#B87000','ar19'],
- ['심판','XX','각성·재시작','📯','#113F68','ar20'],['세계','XXI','완성·통합','🌍','#2A174E','ar21']
-];
-var SUITS=[['컵','Cups','감정·관계','💧','#164D68','cu'],['완드','Wands','열정·행동','🔥','#6A2A0F','wa'],['펜타클','Pentacles','현실·자원','🌿','#285C35','pe'],['소드','Swords','생각·결단','🗡️','#263D72','sw']];
-var RANKS=[['A','새 시작','ac'],['2','균형','02'],['3','확장','03'],['4','안정','04'],['5','갈등','05'],['6','회복','06'],['7','선택','07'],['8','움직임','08'],['9','성숙','09'],['10','완성','10'],['Page','소식','pa'],['Knight','추진','kn'],['Queen','돌봄','qu'],['King','통제','ki']];
-var CARDS=[];
-MAJOR.forEach(m=>CARDS.push({n:m[0],r:m[1],kw:m[2],em:m[3],c:m[4],type:'major',suit:'메이저',emotion:m[2].split('·')[0],shadow:m[2].split('·')[1]||'그림자',img:IMG_BASE+m[5]+'.jpg'}));
-SUITS.forEach(s=>RANKS.forEach(r=>CARDS.push({n:r[0]+' of '+s[1],kr:s[0]+' '+r[0],r:r[0],kw:s[2]+'·'+r[1],em:s[3],c:s[4],type:'minor',suit:s[0],emotion:s[2].split('·')[0],shadow:r[1],img:IMG_BASE+s[5]+r[2]+'.jpg'})));
-
-var MAJOR_EN={'광대':'The Fool','마법사':'The Magician','여사제':'The High Priestess','황후':'The Empress','황제':'The Emperor','교황':'The Hierophant','연인':'The Lovers','전차':'The Chariot','힘':'Strength','은둔자':'The Hermit','운명의 바퀴':'Wheel of Fortune','정의':'Justice','매달린 사람':'The Hanged Man','죽음':'Death','절제':'Temperance','악마':'The Devil','탑':'The Tower','별':'The Star','달':'The Moon','태양':'The Sun','심판':'Judgement','세계':'The World'};
-var MAJOR_CN={'광대':'愚者','마법사':'魔术师','여사제':'女祭司','황후':'皇后','황제':'皇帝','교황':'教皇','연인':'恋人','전차':'战车','힘':'力量','은둔자':'隐士','운명의 바퀴':'命运之轮','정의':'正义','매달린 사람':'倒吊人','죽음':'死神','절제':'节制','악마':'恶魔','탑':'高塔','별':'星星','달':'月亮','태양':'太阳','심판':'审判','세계':'世界'};
-var KW_EN={'시작':'beginning','모험':'adventure','의지':'willpower','창조':'creation','직관':'intuition','비밀':'mystery','풍요':'abundance','돌봄':'care','질서':'order','책임':'responsibility','믿음':'belief','규칙':'rules','선택':'choice','관계':'relationship','추진':'drive','승리':'victory','용기':'courage','인내':'patience','내면':'inner truth','거리두기':'distance','전환':'turning point','흐름':'flow','균형':'balance','판단':'judgement','희생':'pause','관점':'perspective','끝맺음':'ending','변화':'change','조율':'harmony','회복':'recovery','집착':'attachment','욕망':'desire','충격':'shock','해체':'collapse','희망':'hope','치유':'healing','불안':'anxiety','꿈':'dream','활력':'vitality','드러남':'revelation','부름':'calling','완성':'completion','통합':'integration','감정':'emotion','열정':'passion','행동':'action','현실':'reality','자원':'resources','생각':'thoughts','결단':'decision','새 시작':'new beginning','확장':'expansion','안정':'stability','갈등':'conflict','움직임':'movement','성숙':'maturity','소식':'message','통제':'control'};
-var KW_CN={'시작':'开始','모험':'冒险','의지':'意志','창조':'创造','직관':'直觉','비밀':'秘密','풍요':'丰盛','돌봄':'照顾','질서':'秩序','책임':'责任','믿음':'信念','규칙':'规则','선택':'选择','관계':'关系','추진':'推进','승리':'胜利','용기':'勇气','인내':'忍耐','내면':'内在','거리두기':'保持距离','전환':'转变','흐름':'流动','균형':'平衡','판단':'判断','희생':'暂停','관점':'视角','끝맺음':'结束','변화':'变化','조율':'调和','회복':'恢复','집착':'执着','욕망':'欲望','충격':'冲击','해체':'瓦解','희망':'希望','치유':'疗愈','불안':'不安','꿈':'梦境','활력':'活力','드러남':'显现','부름':'召唤','완성':'完成','통합':'整合','감정':'情感','열정':'热情','행동':'行动','현실':'现实','자원':'资源','생각':'想法','결단':'决断','새 시작':'新的开始','확장':'扩展','안정':'稳定','갈등':'冲突','움직임':'行动','성숙':'成熟','소식':'消息','통제':'掌控'};
-var SUIT_CN={'컵':'圣杯','완드':'权杖','펜타클':'星币','소드':'宝剑'};
-function transKW(kw){
-  var map=currentLang==='EN'?KW_EN:(currentLang==='CN'?KW_CN:null);
-  if(!map)return kw;
-  return String(kw||'').split('·').map(function(x){return map[x]||x}).join(currentLang==='CN'?'·':' · ');
+  );
 }
 
-var CATS=[{i:'🪞',n:'오늘의 마음',k:'emotion'},{i:'💕',n:'연애·관계',k:'love'},{i:'💼',n:'일·커리어',k:'work'},{i:'🎯',n:'선택·결정',k:'choice'}];
-var MODES=[{i:'🌙',n:'감성',k:'soft',desc:'부드럽게'},{i:'🪞',n:'현실',k:'real',desc:'현실적으로'},{i:'🔥',n:'직관',k:'intuition',desc:'날카롭게'}];
-var MOODS=['설렘','불안','지침','외로움','기대','답답함','감사','혼란','평온'];
-var POS={1:['오늘의 거울'],3:['감정의 시작','지금의 중심','다음 행동'],6:['현재 감정','반복 패턴','숨은 욕구','현실 변수','오늘의 조언','정리 메시지']};
-var QUOTES=[
- {q:'상상력은 지식보다 중요하다.',a:'알베르트 아인슈타인'},
- {q:'천천히 가도 멈추지 않으면 괜찮다.',a:'공자'},
- {q:'어둠 속에서도 별은 빛난다.',a:'빅토르 위고'},
- {q:'나 자신을 아는 것이 모든 지혜의 시작이다.',a:'아리스토텔레스'},
- {q:'행동은 모든 성공의 기초다.',a:'파블로 피카소'},
- {q:'삶은 자신을 찾는 것이 아니라, 자신을 만드는 것이다.',a:'조지 버나드 쇼'},
- {q:'오늘 할 수 있는 일을 내일로 미루지 말라.',a:'벤저민 프랭클린'}
-];
+/* ═══════════════════════════════════════════════════════════
+   App
+═══════════════════════════════════════════════════════════ */
+function App(){
+  const [scr,setScr]=useState('home');
+  const [lang,setLang]=useState('ko');
+  const [mode,setMode]=useState(null);
+  const [bgmOn,setBgmOn]=useState(false);
+  const [showDiag,setShowDiag]=useState(false);
+  const [q,setQ]=useState(null);
+  const [score,setScore]=useState(0);
+  const [lives,setLives]=useState(5);
+  const [timeLft,setTimeLft]=useState(60);
+  const [qTime,setQTime]=useState(Q_NORMAL);
+  const [lv,setLv]=useState(0);
+  const [corr,setCorr]=useState(0);
+  const [tot,setTot]=useState(0);
+  const [combo,setCombo]=useState(0);
+  const [maxCombo,setMaxCombo]=useState(0);
+  const [fbTy,setFbTy]=useState(null);
+  const [fbTx,setFbTx]=useState('');
+  const [selA,setSelA]=useState(null);
+  const [lockd,setLockd]=useState(false);
+  const [lvAnim,setLvAnim]=useState(false);
+  const [stars,setStars]=useState([]);
+  const [sAnim,setSAnim]=useState(null);
+  const [shake,setShake]=useState(false);
+  const [lstPh,setLstPh]=useState(false);
+  const [bgKey,setBgKey]=useState('sky');
+  const [petPulse,setPetPulse]=useState(false);
 
-var user={name:'',month:0,day:0,zodiac:'',mood:'',concern:''};
-var selCat='emotion',selMode='real',deckMode='78',spreadN=1,drawn=[],flipped=0,allFlipped=false,quotaUsed=0,QUOTA=5,isPremium=false,selPlan='beta',rdData=null,currentLang='KO';
+  const gT=useRef(null),qT=useRef(null),lsT=useRef(null);
+  const qTR=useRef(Q_NORMAL),lvR=useRef(0),livR=useRef(5),mR=useRef(null),lR=useRef('ko');
+  const lkR=useRef(false),scR=useRef(0),crR=useRef(0),ttR=useRef(0),cbR=useRef(0),mcR=useRef(0),qR=useRef(null);
 
-var BACK_SVG='<svg class="backsvg" viewBox="0 0 86 132" xmlns="http://www.w3.org/2000/svg"><rect width="86" height="132" rx="10" fill="#07041A"/><rect x="3" y="3" width="80" height="126" rx="8" fill="none" stroke="#C9A84C" stroke-width="1.4"/><rect x="8" y="8" width="70" height="116" rx="5" fill="none" stroke="#C9A84C" opacity=".38" stroke-dasharray="3 2"/><circle cx="43" cy="66" r="25" fill="none" stroke="#C9A84C" opacity=".34"/><circle cx="43" cy="66" r="15" fill="none" stroke="#C9A84C" opacity=".45"/><path d="M43 39 L47 62 L68 66 L47 70 L43 93 L39 70 L18 66 L39 62 Z" fill="#C9A84C" opacity=".14"/><circle cx="43" cy="66" r="4" fill="#C9A84C"/><text x="43" y="18" text-anchor="middle" font-family="Cinzel,serif" font-size="6" fill="#C9A84C" letter-spacing="2">HAJI</text><text x="43" y="119" text-anchor="middle" font-family="Cinzel,serif" font-size="6" fill="#C9A84C" letter-spacing="2">MOOD</text></svg>';
+  useEffect(()=>{
+    // 목소리 캐시 — Chrome은 voiceschanged 전에 빈 배열 반환하므로 다중 재시도
+    refreshVoices();
+    window.speechSynthesis.addEventListener('voiceschanged',refreshVoices);
+    [200,500,1000,2000,4000].forEach(t=>setTimeout(refreshVoices,t));
+    return()=>window.speechSynthesis.removeEventListener('voiceschanged',refreshVoices);
+  },[]);
+  useEffect(()=>()=>{clearInterval(gT.current);clearInterval(qT.current);clearTimeout(lsT.current);},[]);
+  useEffect(()=>{if(scr==='result')setTimeout(()=>SFX.fanfare(),250);},[scr]);
 
-$('startBtn').onclick=async function(){showScreen('screen-onboard');setupOnboard();await startAudio()};
-
-// 브라우저 정책상 완전한 무터치 자동재생은 막힐 수 있어요. 대신 첫 터치/클릭 순간 바로 BGM을 켭니다.
-window.addEventListener('load', function(){ startAudio().catch(function(){}) });
-document.addEventListener('pointerdown', function(){ startAudio(); }, {once:true});
-document.addEventListener('touchstart', function(){ startAudio(); }, {once:true});
-
-
-function L(key){
-  var dict={
-    KO:{
-      sub:'정교한 타로 카드 · 감정 메시지 · 명언 카드',
-      disc:'오늘의 감정을 카드로 정리하고<br><strong class="gold">나를 이해하는 작은 의식</strong>을 시작해보세요.',
-      safe:'<strong>오락·자기성찰 콘텐츠입니다.</strong><br>본 앱은 미래 예측, 운명 보장, 투자·의료·법률 판단을 제공하지 않습니다.',
-      start:'✦ 감정 오라클 시작하기 ✦', audio:'화면을 한 번 터치하면 몽환 BGM이 시작됩니다.',
-      feature:'78장 전체 덱 · 실제 타로 카드 이미지 · 긴 메시지 · 명언 & 조언 카드 · SNS 공유',
-      personal:'Personal Ritual', obSub:'정보 입력은 선택입니다. 기록은 이 기기 안에만 저장됩니다.',
-      quick:'닉네임을 넣으면 결과와 저장 포토카드에 이름이 들어갑니다.<br>고민을 적으면 그 문장을 중심으로 리딩 문장이 더 개인화됩니다.',
-      name:'닉네임, 선택', namePh:'예) 별빛, 하준아빠', nameHelp:'입력 시 포토카드에 “For 별빛”처럼 표시됩니다. 원치 않으면 비워두세요.',
-      mood:'지금 감정, 선택', concern:'한 줄 고민, 선택', concernPh:'예) 이직을 해야 할지 모르겠어요',
-      concernHelp:'현재 Beta는 입력한 고민을 결과 문장에 반영합니다. 실제 AI 상담 수준의 깊은 맞춤 분석은 다음 단계에서 연결 예정입니다.',
-      policy:'🛡️ 이 앱은 오락·자기성찰 콘텐츠입니다. 미래를 단정하거나 투자·의료·법률 판단을 제공하지 않습니다.',
-      go:'내 정보로 리딩 시작 →', skip:'정보 없이 바로 시작',
-      record:'기록', feedback:'피드백', main:'무엇이 궁금한가요?', spread:'어떻게 볼까요?', draw:'카드 뽑기',
-      one:'오늘의 한 장', oneSub:'빠른 메시지', three:'3장 흐름', threeSub:'현재·흐름·조언', six:'6장 심층', sixSub:'리얼 리딩',
-      deckTip:'기본은 실제 타로에 가까운 78장 전체 덱입니다. 결과에는 위로, 현실 지적, 그림자 메시지가 함께 반영됩니다.',
-      deckHint:'카드를 뽑아 오늘의 메시지를 확인하세요', footer:'오락·자기성찰 목적 · 실제 미래를 예측하거나 결과를 보장하지 않습니다 · Haji Studio',
-      beta:'🌙 Real Reading Beta'
-    },
-    EN:{
-      sub:'Detailed tarot cards · emotional messages · quote cards',
-      disc:'Turn today’s feelings into cards<br><strong class="gold">and begin a small ritual of self-understanding.</strong>',
-      safe:'<strong>For entertainment and self-reflection.</strong><br>This app does not provide guaranteed predictions, destiny claims, investment, medical, or legal advice.',
-      start:'✦ Start Reading ✦', audio:'Tap once to start the dreamy BGM.',
-      feature:'Full 78-card deck · tarot imagery · long reading · quote & advice card · social sharing',
-      personal:'Personal Ritual', obSub:'All inputs are optional. Records are stored only on this device.',
-      quick:'Add a nickname to show it on saved photo cards.<br>Add a concern to personalize the reading around that question.',
-      name:'Nickname, optional', namePh:'e.g. Starlight, Haji', nameHelp:'If entered, the photo card will show “For Starlight.” Leave it blank if you prefer.',
-      mood:'Current feeling, optional', concern:'One-line concern, optional', concernPh:'e.g. Should I change jobs?',
-      concernHelp:'In this Beta, your concern is reflected in the reading text. Deeper AI-style counseling can be connected later.',
-      policy:'🛡️ This app is for entertainment and self-reflection. It does not guarantee the future or provide investment, medical, or legal advice.',
-      go:'Start with my info →', skip:'Start without info',
-      record:'Journal', feedback:'Feedback', main:'What do you want to ask?', spread:'Choose your reading', draw:'Draw your cards',
-      one:'One Card', oneSub:'Quick message', three:'3-Card Flow', threeSub:'Now · Flow · Advice', six:'6-Card Deep', sixSub:'Real reading',
-      deckTip:'The default is a full 78-card deck. Comfort, realistic reflection, and shadow messages are all included.',
-      deckHint:'Draw your cards to reveal today’s message', footer:'For entertainment and self-reflection · Does not predict or guarantee the future · Haji Studio',
-      beta:'🌙 Real Reading Beta'
-    },
-    CN:{
-      sub:'精致塔罗牌 · 情绪讯息 · 金句卡片',
-      disc:'用卡牌整理今天的情绪<br><strong class="gold">开启理解自己的小仪式。</strong>',
-      safe:'<strong>娱乐与自我觉察内容。</strong><br>本应用不提供未来保证、命运断言、投资、医疗或法律建议。',
-      start:'✦ 开始情绪塔罗 ✦', audio:'轻触屏幕后，梦幻背景音乐会开始。',
-      feature:'完整78张牌组 · 塔罗图像 · 长篇解读 · 金句与建议卡 · 社交分享',
-      personal:'个人仪式', obSub:'所有信息均为选填，记录只保存在本设备中。',
-      quick:'填写昵称后，保存的图片卡会显示名字。<br>填写烦恼后，解读会围绕该问题更个性化。',
-      name:'昵称，选填', namePh:'例）星光，Haji', nameHelp:'填写后图片卡会显示 “For 星光”。不想显示可留空。',
-      mood:'当前情绪，选填', concern:'一句话烦恼，选填', concernPh:'例）我该不该换工作？',
-      concernHelp:'当前 Beta 会把你的烦恼反映到解读文字中。更深度的 AI 咨询可在下一阶段连接。',
-      policy:'🛡️ 本应用为娱乐与自我觉察内容，不断言未来，也不提供投资、医疗或法律建议。',
-      go:'用我的信息开始 →', skip:'不填写，直接开始',
-      record:'记录', feedback:'反馈', main:'你想询问什么？', spread:'选择牌阵', draw:'抽取卡牌',
-      one:'一张牌', oneSub:'快速讯息', three:'三张牌', threeSub:'现在·流向·建议', six:'六张深度', sixSub:'深度解读',
-      deckTip:'默认使用接近真实塔罗的78张完整牌组。结果包含安慰、现实提醒与阴影讯息。',
-      deckHint:'抽取卡牌，查看今天的讯息', footer:'娱乐与自我觉察用途 · 不预测或保证真实未来 · Haji Studio',
-      beta:'🌙 Real Reading Beta'
-    }
+  const spawnS=()=>{
+    const s=[...Array(12)].map((_,i)=>({id:Date.now()+i,x:Math.random()*84+6,col:STARS_COLS[i%7],sz:Math.random()*18+13,ch:STARS_CHARS[Math.floor(Math.random()*6)]}));
+    setStars(s);setTimeout(()=>setStars([]),1200);
   };
-  return (dict[currentLang]&&dict[currentLang][key])||dict.KO[key]||key;
-}
-var CAT_NAMES={
-  KO:{emotion:'오늘의 마음',love:'연애·관계',work:'일·커리어',choice:'선택·결정'},
-  EN:{emotion:"Today's Mind",love:'Love & Relationship',work:'Work & Career',choice:'Choice & Decision'},
-  CN:{emotion:'今日心情',love:'恋爱·关系',work:'工作·事业',choice:'选择·决定'}
-};
-var MOOD_MAP={
-  KO:['설렘','불안','지침','외로움','기대','답답함','감사','혼란','평온'],
-  EN:['Excited','Anxious','Tired','Lonely','Hopeful','Stuck','Grateful','Confused','Calm'],
-  CN:['期待','不安','疲惫','孤独','盼望','郁闷','感谢','混乱','平静']
-};
-function catLabel(k){return (CAT_NAMES[currentLang]&&CAT_NAMES[currentLang][k])||CAT_NAMES.KO[k]||k}
-function setText(id,val,html){var e=$(id);if(e){if(html)e.innerHTML=val;else e.textContent=val}}
-function applyLang(){
-  setText('discMain',L('disc'),true); setText('safeNote',L('safe'),true);
-  var sub=document.querySelector('.subtitle'); if(sub)sub.textContent=L('sub');
-  setText('startBtn',L('start')); setText('audioHint',L('audio')); setText('featureNote',L('feature'));
-  var ob=document.querySelector('.ob-title'); if(ob)ob.textContent=L('personal');
-  setText('obSub',L('obSub')); setText('quickNote',L('quick'),true); setText('nameLabel',L('name'));
-  var name=$('obName'); if(name)name.placeholder=L('namePh');
-  setText('nameHelp',L('nameHelp')); setText('moodLabel',L('mood')); setText('concernLabel',L('concern'));
-  var con=$('obConcern'); if(con)con.placeholder=L('concernPh');
-  setText('concernHelp',L('concernHelp')); setText('policyCard',L('policy'));
-  setText('goMainBtn',L('go')); setText('skipBtn',L('skip'));
-  var rb=document.querySelector('[onclick="showDiary()"]'); if(rb)rb.textContent='📖 '+L('record');
-  var fb=document.querySelector('[onclick="openFeedback()"]'); if(fb)fb.textContent='📝 '+L('feedback');
-  var q=document.querySelector('.quota span'); if(q)q.textContent=L('beta');
-  var titles=document.querySelectorAll('.section-title');
-  if(titles[0])titles[0].textContent=L('main');
-  if(titles[1])titles[1].textContent=L('spread');
-  if(titles[2])titles[2].textContent=L('draw');
-  var st1=$('st1'),st3=$('st3'),st6=$('st6');
-  if(st1)st1.innerHTML='<span class="si">🪞</span><span class="sn">'+L('one')+'</span><span class="ss">'+L('oneSub')+'</span>';
-  if(st3)st3.innerHTML='<span class="si">🃏</span><span class="sn">'+L('three')+'</span><span class="ss">'+L('threeSub')+'</span>';
-  if(st6)st6.innerHTML='<span class="si">🎴</span><span class="sn">'+L('six')+'</span><span class="ss">'+L('sixSub')+'</span>';
-  setText('deckTip',L('deckTip')); setText('deckHint',L('deckHint')); setText('footerNote',L('footer'));
-  setupOnboard(); renderCats();
-}
-function setLang(lang){
-  currentLang=lang;
-  document.querySelectorAll('.langbtn').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-lang')===lang)});
-  applyLang();
-  toast(lang==='KO'?'한국어로 전환했어요':lang==='EN'?'Switched to English':'已切换为中文');
-}
-function LT(ko,en,cn){return currentLang==='EN'?en:(currentLang==='CN'?cn:ko)}
-function setupOnboard(){
-  var mg=$('moodPick'); if(!mg)return; mg.innerHTML='';
-  (MOOD_MAP[currentLang]||MOOD_MAP.KO).forEach(function(x){
-    var b=document.createElement('button');
-    b.className='pick '+(user.mood===x?'on':'');
-    b.textContent=x;
-    b.onclick=function(){document.querySelectorAll('#moodPick .pick').forEach(function(p){p.classList.remove('on')});b.classList.add('on');user.mood=x};
-    mg.appendChild(b);
-  });
-}
-function getZodiac(m,d){var z=[['물병자리',1,20,'♒'],['물고기자리',2,19,'♓'],['양자리',3,21,'♈'],['황소자리',4,20,'♉'],['쌍둥이자리',5,21,'♊'],['게자리',6,21,'♋'],['사자자리',7,23,'♌'],['처녀자리',8,23,'♍'],['천칭자리',9,23,'♎'],['전갈자리',10,23,'♏'],['사수자리',11,22,'♐'],['염소자리',12,22,'♑']];for(var i=0;i<z.length;i++){var cur=z[i],nx=z[(i+1)%12];if((m===cur[1]&&d>=cur[2])||(m===nx[1]&&d<nx[2]))return cur[3]+' '+cur[0]}return ''}
-function goMain(skip){
-  user.name=skip?'':$('obName').value.trim();
-  user.month=0;user.day=0;user.zodiac='';
-  user.concern=skip?'':$('obConcern').value.trim();
-  showScreen('screen-main');initMain();
-}
-function initMain(){
-  var d=new Date(),w=['일','월','화','수','목','금','토'];
-  $('userInfo').textContent=d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate()+' '+w[d.getDay()]+' · '+(user.name?user.name+'님 · ':'')+(user.mood?'오늘 감정 '+user.mood:'감정 미입력')+(user.zodiac?' · '+user.zodiac:'');
-  renderQuota();renderCats();renderDeck();renderMemory();renderEvent()
-}
-function renderDeck(){['dk1','dk2','dk3'].forEach(id=>$(id).innerHTML=BACK_SVG)}
-function renderQuota(){var c=$('qdots');c.innerHTML='';for(var i=0;i<QUOTA;i++){var d=document.createElement('div');d.className='qdot '+(i<quotaUsed?'used':'ok');c.appendChild(d)}}
-function renderModes(){var g=$('modegrid');g.innerHTML='';MODES.forEach(function(m){var b=document.createElement('button');b.className='modebtn '+(m.k===selMode?'on':'');b.innerHTML='<span class="ci">'+m.i+'</span><span class="sn">'+m.n+'</span>';b.onclick=function(){selMode=m.k;renderModes()};g.appendChild(b)})}
+  const stopQ=()=>clearInterval(qT.current);
 
-function renderCats(){
-  var g=$('catgrid');if(!g)return;g.innerHTML='';
-  CATS.forEach(function(c){
-    var b=document.createElement('button');
-    b.className='catbtn '+(c.k===selCat?'on':'');
-    b.innerHTML='<span class="topic-seal topic-'+c.k+'"></span><span class="sn">'+catLabel(c.k)+'</span>';
-    b.onclick=function(){selCat=c.k;renderCats();renderEvent();resetGame(false)};
-    g.appendChild(b);
-  });
-}
-function getRepeatedCard(r){var m={};r.slice(-7).forEach(x=>(x.cards||[]).forEach(n=>m[n]=(m[n]||0)+1));var best=Object.keys(m).sort((a,b)=>m[b]-m[a])[0];return best&&m[best]>=2?best:''}
-function renderEvent(){var h=new Date().getHours(),txt='';if(h>=0&&h<5)txt='🌌 <b>심야 오라클 오픈</b> · 새벽에는 감정을 단정하지 않고, 조용히 정리하는 문장으로 안내합니다.';else txt='🌙 <b>오늘의 감정 체크</b> · 결과는 저주나 예언이 아니라, 지금 마음의 패턴을 비추는 자기성찰 콘텐츠입니다.';$('timeEvent').innerHTML=txt}
-function getCardName(c){
-  if(currentLang==='EN'){
-    if(c.type==='major')return MAJOR_EN[c.n]||c.n;
-    return c.n||c.kr;
-  }
-  if(currentLang==='CN'){
-    if(c.type==='major')return MAJOR_CN[c.n]||c.n;
-    return (SUIT_CN[c.suit]||c.suit)+' '+c.r;
-  }
-  return c.kr||c.n;
-}function getPos(){var P={KO:{1:['오늘의 거울'],3:['감정의 시작','지금의 중심','다음 행동'],6:['현재 감정','반복 패턴','숨은 욕구','현실 변수','오늘의 조언','정리 메시지']},EN:{1:['Today’s Mirror'],3:['Emotional Start','Current Center','Next Action'],6:['Current Feeling','Repeating Pattern','Hidden Need','Reality Factor','Today’s Advice','Closing Message']},CN:{1:['今日之镜'],3:['情绪起点','当下核心','下一步行动'],6:['当前情绪','重复模式','隐藏需求','现实变量','今日建议','整理讯息']}};return (P[currentLang]||P.KO)[spreadN]}
-function getCatName(){return catLabel(selCat)}
-function getModeName(){return currentLang==='EN'?'Realistic':(currentLang==='CN'?'现实':'현실')}
-function getPrice(){return currentLang==='EN'?'Beta Free':(currentLang==='CN'?'Beta 免费':'Beta 무료')}function pickQuote(cards){var seed=(cards||[]).map(getCardName).join('').length+new Date().getDate();return QUOTES[seed%QUOTES.length]}function getDeckCards(){return deckMode==='22'?CARDS.filter(c=>c.type==='major'):CARDS}
-function setDeckMode(mode){deckMode=mode;$('deck22').className='deckmode-btn '+(mode==='22'?'on':'');$('deck78').className='deckmode-btn '+(mode==='78'?'on':'');resetGame(false);toast(mode==='22'?'22장 메이저 덱으로 변경했어요':'78장 전체 덱으로 변경했어요')}
+  const handleTO=useCallback(()=>{
+    if(lkR.current)return;
+    lkR.current=true;setLockd(true);setSelA('to');
+    setFbTy('wrong');setFbTx(rnd(PH.wUI,lR.current));
+    say(rnd(PH.to,lR.current),lR.current);
+    SFX.wrong();setBgKey('red');setShake(true);setTimeout(()=>setShake(false),520);
+    cbR.current=0;setCombo(0);ttR.current++;setTot(ttR.current);
+    if(mR.current!=='time'){
+      livR.current--;setLives(livR.current);
+      if(livR.current<=0){setTimeout(()=>{say(rnd(PH.over,lR.current),lR.current);setScr('result');},1800);return;}
+    }
+    setTimeout(()=>next(lvR.current),2000); // 피드백 음성 완료 대기
+  },[]);
 
-function setN(n){
-  spreadN=n;[1,3,6].forEach(function(x){var el=$('st'+x);if(el)el.className='stbtn '+(x===n?'on':'')});
-  var hint=$('deckHint');if(hint)hint.textContent=LT('카드 '+n+'장을 뽑아 리딩을 시작하세요','Draw '+n+' card'+(n>1?'s':'')+' to begin your reading','抽取 '+n+' 张牌，开始解读');
-  resetGame(false)
-}
-function startSpread(){
-  if(drawn.length)return;if(quotaUsed>=QUOTA&&!isPremium){showSub();return}
-  bgm.sfx('flip');var deck=getDeckCards();var idx=shuffle([...Array(deck.length).keys()]).slice(0,spreadN);drawn=idx.map(i=>({idx:CARDS.indexOf(deck[i])}));flipped=0;allFlipped=false;
-  var pos=getPos(),S=spreadN===6,one=spreadN===1,cls=one?'size1':S?'size6':'size3',wrap=one?'srow':S?'sgrid':'srow';
-  var prog='<div class="fptxt">'+(S?LT('카드를 한 장씩 눌러 뒤집으세요 (0/'+spreadN+')','Tap each card to reveal it (0/'+spreadN+')','逐张点击翻开卡牌 (0/'+spreadN+')'):LT('카드를 눌러 뒤집어보세요','Tap the card to reveal it','点击卡牌翻开'))+'</div>'+(S?'<div class="fprow">'+Array(spreadN).fill('<div class="fpdot"></div>').join('')+'</div>':'');
-  var html='<div class="'+wrap+'">';drawn.forEach(function(d,i){var card=CARDS[d.idx];html+='<div class="slot"><div class="card-outer '+cls+'" id="co'+i+'"><div class="cflip" id="cf'+i+'"><div class="cback">'+BACK_SVG+'</div><div class="cfront">'+makeCardHTML(card)+'</div></div></div><div class="pos-lbl">'+pos[i]+'</div></div>'});html+='</div>';$('spreadArea').innerHTML=prog+html;$('resultArea').innerHTML='';drawn.forEach((_,i)=>$('co'+i).onclick=function(){flipCard(i)})
-}
-function flipCard(i){var co=$('co'+i),cf=$('cf'+i);if(co.classList.contains('flipped-done'))return;bgm.sfx('flip');cf.classList.add('flipped');co.classList.add('flipped-done');flipped++;if(spreadN===6){var dots=document.querySelectorAll('.fpdot');if(dots[i])dots[i].classList.add('done');var txt=document.querySelector('.fptxt');txt.textContent=flipped<spreadN?LT('카드를 한 장씩 눌러 뒤집으세요 ('+flipped+'/'+spreadN+')','Tap each card to reveal it ('+flipped+'/'+spreadN+')','逐张点击翻开卡牌 ('+flipped+'/'+spreadN+')'):LT('✦ '+spreadN+'장 완성','✦ '+spreadN+' cards revealed','✦ '+spreadN+' 张完成')}if(flipped===spreadN&&!allFlipped){allFlipped=true;quotaUsed++;renderQuota();setTimeout(function(){bgm.sfx('deep');showFree()},550)}}
-function calcSeed(cards){cards=cards||drawn.map(d=>CARDS[d.idx]);var seed=(user.concern||'').length+(user.mood||'').length+spreadN*13+selCat.length*7;cards.forEach(function(c,i){seed+=(getCardName(c).length+c.kw.length+c.shadow.length)*(i+1)});return seed}
-function pickStable(arr,seed){return arr[Math.abs(seed)%arr.length]}
-function detectConcernType(){
-  var q=(user.concern||'').toLowerCase();
-  if(/이직|퇴사|회사|직장|커리어|직무|상사|연봉|면접|취업|일자리|전직|移职|离职|跳槽|工作|career|job|quit|resign/.test(q))return 'work';
-  if(/연애|사랑|상대|남친|여친|이별|재회|관계|썸|결혼|恋爱|关系|love|relationship/.test(q))return 'love';
-  if(/선택|결정|고민|해야|말아|갈까|할까|选择|决定|choice|decision/.test(q))return 'choice';
-  return '';
-}
-function concernHook(){
-  if(!user.concern)return '';
-  var q=htmlEscape(user.concern),t=detectConcernType()||selCat;
-  if(currentLang==='EN'){
-    if(t==='work')return 'Your concern, “'+q+'”, includes a job change, resignation, or career decision. The key is not simply whether to leave or stay, but whether your fatigue is temporary or structural, and whether the next step is avoidance or growth. ';
-    if(t==='love')return 'Your concern, “'+q+'”, is less about guessing the other person’s hidden feelings and more about what you have been tolerating in this relationship. ';
-    if(t==='choice')return 'Your concern, “'+q+'”, asks you to look at what consequences you can actually carry, rather than searching for a perfect answer. ';
-    return 'Your concern, “'+q+'”, points to why this feeling keeps repeating, not just how to explain it. ';
-  }
-  if(currentLang==='CN'){
-    if(t==='work')return '你写下的烦恼“'+q+'”包含换工作、离职或职业选择的问题。重点不只是离开还是留下，而是确认现在的疲惫是暂时的还是结构性的，以及下一步是逃避还是成长。 ';
-    if(t==='love')return '你写下的烦恼“'+q+'”与其猜测对方的心意，不如看见自己在这段关系中一直忍受了什么。 ';
-    if(t==='choice')return '你写下的烦恼“'+q+'”提醒你，与其寻找完美答案，不如判断自己能承担哪一种结果。 ';
-    return '你写下的烦恼“'+q+'”不是为了单纯解释情绪，而是为了看见这个情绪为何反复出现。 ';
-  }
-  if(t==='work')return '당신이 적은 고민 “'+q+'”은 이직·퇴사·직장 선택의 문제를 포함하고 있습니다. 지금 핵심은 당장 떠날지 남을지가 아니라, 안정감과 소진감 중 무엇이 더 크게 나를 움직이고 있는지 확인하는 일입니다. ';
-  if(t==='love')return '당신이 적은 고민 “'+q+'”은 상대의 마음을 맞히기보다, 이 관계 안에서 내가 무엇을 참고 있는지 보게 합니다. ';
-  if(t==='choice')return '당신이 적은 고민 “'+q+'”은 정답 찾기보다 어떤 결과를 감당할 수 있는지 따져야 한다는 신호입니다. ';
-  return '당신이 적은 고민 “'+q+'”은 감정을 설명하는 것보다, 그 감정이 계속 반복되는 이유를 바라보게 합니다. ';
-}
-function toneSentence(){var base={soft:['지금 필요한 것은 기분 좋은 위로보다, 마음이 왜 같은 자리를 맴도는지 차분히 인정하는 일입니다.','조급하게 결론을 내리기보다 감정의 결을 세밀하게 읽는 편이 더 정확합니다.'],real:['오늘의 카드는 상황을 낭만적으로 포장하기보다, 이미 드러난 사실을 어떻게 다룰지 묻고 있습니다.','감정은 중요하지만 지금은 느낌과 현실을 분리해서 보지 않으면 같은 장면이 반복될 수 있습니다.'],intuition:['이미 알고 있었지만 미뤄둔 감정이 카드 위로 올라왔습니다. 불편하더라도 핵심은 꽤 분명합니다.','직감은 힌트를 주고 있습니다. 다만 그 힌트를 계속 모르는 척할수록 마음의 피로는 더 커집니다.']};var pool=base[selMode]||base.real;return pickStable(pool,calcSeed())}
-function categorySentence(){var packs={emotion:['오늘의 핵심은 감정을 없애는 것이 아니라, 지금 마음을 가장 크게 흔드는 장면을 정확히 집어내는 데 있습니다.','지금은 감정의 크기를 줄이는 것보다, 그 감정이 언제 반복되는지 알아차리는 편이 훨씬 도움이 됩니다.'],love:['관계의 답은 상대의 숨은 마음보다, 내가 어떤 태도를 반복해서 허용하고 있는지에서 먼저 드러납니다.','연애·관계 리딩의 포인트는 사랑의 강도보다 관계 안에서 내가 잃고 있는 균형을 보는 것입니다.'],work:['일·커리어의 핵심은 더 열심히 하는 것이 아니라, 계속 버티는 방식이 나를 갉아먹고 있지는 않은지 확인하는 일입니다.','지금 필요한 것은 성실함의 양이 아니라 방향 점검입니다. 계속할 것과 끊어낼 방식을 나눠야 합니다.'],choice:['선택의 핵심은 완벽한 답을 찾는 것이 아니라, 어느 쪽의 후회를 더 감당할 수 있는지 보는 데 있습니다.','망설임이 길어질수록 가능성은 많아 보이지만 실제 에너지는 줄어듭니다. 지금은 한 걸음의 기준을 세워야 합니다.']};return pickStable(packs[selCat]||packs.emotion,calcSeed()+3)}
-function shadowLine(card){
-  if(currentLang==='EN')return 'The shadow is avoidance. Even when you pretend not to know the answer, your mind may already be holding an important clue.';
-  if(currentLang==='CN')return '今天的阴影是回避。即使你假装不知道答案，内心可能已经握着重要线索。';
-  var name=getCardName(card), key=(card.kw||'')+' '+name+' '+(card.shadow||'');
-  if(/악마|집착|욕망/.test(key))return '지금 가장 조심할 것은 원하는 마음 자체가 아니라, 그 마음을 이유로 스스로의 기준을 낮추는 패턴입니다.';
-  if(/탑|충격|해체/.test(key))return '이미 흔들리던 구조를 계속 괜찮다고 말하고 있었을 수 있습니다. 불편한 신호를 너무 늦게 인정하지 마세요.';
-  if(/죽음|끝맺음|전환/.test(key))return '끝이 무조건 나쁜 것은 아니지만, 끝난 것을 붙잡느라 새 흐름을 늦추고 있지는 않은지 봐야 합니다.';
-  if(/달|불안|직감/.test(key))return '감정이 커질수록 사실과 상상이 섞일 수 있습니다. 오늘은 추측을 결론처럼 다루지 않는 것이 중요합니다.';
-  if(/연인|관계|컵/.test(key))return '애정과 서운함이 섞인 상태에서는 작은 신호를 크게 해석하기 쉽습니다. 좋아하는 마음과 지켜야 할 기준을 분리하세요.';
-  if(/펜타클|현실|자원/.test(key))return '현실 문제를 감정 문제로만 해석하면 해결이 늦어질 수 있습니다. 숫자와 사실을 같이 확인하세요.';
-  if(/소드|갈등|검/.test(key))return '생각이 날카로워질수록 말도 날카로워질 수 있습니다. 오늘은 판단보다 확인을 먼저 하세요.';
-  return '오늘의 그림자는 미루는 습관입니다. 답을 모르는 척하는 순간에도 마음은 이미 중요한 힌트를 알고 있을 수 있습니다.';
-}
-function cautionLine(){
-  if(currentLang==='EN'){
-    var e={emotion:['Do not stay too long interpreting feelings while delaying action.'],love:['Do not overread small reactions or keep pushing your standards backward.'],work:['Do not add more tasks. First decide one work pattern to stop.'],choice:['Do not wait for perfect certainty until the timing passes.']};return pickStable(e[selCat]||e.emotion,calcSeed()+5);
-  }
-  if(currentLang==='CN'){
-    var c={emotion:['不要只停留在解释情绪，而继续推迟行动。'],love:['不要过度解读对方的小反应，也不要一直后退自己的标准。'],work:['不要继续增加任务，先决定一个要停止的工作模式。'],choice:['不要为了等待完美确定感而错过时机。']};return pickStable(c[selCat]||c.emotion,calcSeed()+5);
-  }
-  var x={emotion:['감정을 해석하는 데 오래 머무르다가 실제 행동을 또 미루지 마세요.','마음이 복잡할수록 결론부터 내리기보다, 내 감정을 키우는 장면을 먼저 끊어내세요.'],love:['상대의 작은 반응을 지나치게 크게 해석하거나, 내 기준을 계속 뒤로 미루지 마세요.','불안해서 확인을 반복할수록 관계의 밀도보다 피로만 커질 수 있습니다.'],work:['해야 할 일을 더 늘리기보다, 지금 버려야 할 방식 하나를 먼저 정리하세요.','버티는 힘만으로 해결하려고 하면 소진 신호를 놓치기 쉽습니다.'],choice:['완벽한 확신을 기다리다 선택의 타이밍을 놓치지 마세요.','더 생각하면 명확해질 거라고 믿지만, 실제로는 책임이 두려워 미루고 있을 수도 있습니다.']};return pickStable(x[selCat]||x.emotion,calcSeed()+5);
-}
-function truthLine(){
-  if(currentLang==='EN'){
-    var p={emotion:['You may not be overwhelmed by too many feelings. You may be blurring the one feeling that truly matters.'],love:['The bigger issue may be how far you have pushed yourself back while waiting.'],work:['You may not lack ability. You may be covering exhaustion with diligence.'],choice:['You may not be stuck because you do not know the answer, but because you already know which answer hurts.']};return pickStable(p[selCat]||p.emotion,calcSeed()+9);
-  }
-  if(currentLang==='CN'){
-    var c={emotion:['你可能不是情绪太多，而是在模糊真正核心的那个情绪。'],love:['更大的问题可能不是等待本身，而是你在等待中把自己退后了多少。'],work:['可能不是能力不足，而是你用认真掩盖了疲惫。'],choice:['你可能不是不知道答案，而是已经知道哪个答案更痛。']};return pickStable(c[selCat]||c.emotion,calcSeed()+9);
-  }
-  var pools={emotion:['지금 당신은 감정이 너무 많아서 힘든 것이 아니라, 무엇이 진짜 핵심 감정인지 계속 흐리고 있을 수 있습니다.','가장 피곤한 부분은 상황 자체보다, 그 상황을 계속 이해하려고 애쓰는 습관일 수 있습니다.'],love:['상대를 기다리는 시간보다, 그 기다림 속에서 나 자신을 얼마나 뒤로 미뤄왔는지가 더 큰 문제일 수 있습니다.','관계를 놓치기 싫은 마음이, 이미 불편한 장면을 정상처럼 받아들이게 만들고 있을 수 있습니다.'],work:['능력이 부족해서가 아니라, 소진된 상태를 성실함으로 덮고 있어서 더 지치는 것일 수 있습니다.','안정적이라는 이유만으로 계속 버티고 있다면, 그 안정은 보호가 아니라 지연일 수 있습니다.'],choice:['지금 당신은 답을 몰라서 멈춘 것이 아니라, 어떤 결론이 더 아픈지 이미 알고 있어서 미루고 있을 수 있습니다.','선택지를 비교하는 척하면서 사실은 어떤 책임도 지지 않는 상태를 유지하고 있을 가능성이 있습니다.']};return pickStable(pools[selCat]||pools.emotion,calcSeed()+9);
-}
-function makeCategoryPack(cards){
-  var forced=detectConcernType(),seed=calcSeed(cards);
-  if(currentLang==='EN'){
-    var packs={
-      emotion:{key:['The key is not to erase the feeling, but to notice exactly where it grows.','The point is not how sensitive you are, but what keeps repeating the sensitivity.'],action:['Write down one feeling that remains the strongest and one scene that made it bigger.','Before sleep, write “the thought draining me most” and “one action I will stop tomorrow.”'],advice:['Do not hold only the pleasant sentence. Keep the sentence that stings a little. It may be the real advice.']},
-      love:{key:['The relationship is less about the other person’s hidden mind and more about what you keep allowing.','This reading points to where your standards are being shaken inside the relationship.'],action:['Write down what behavior is acceptable to you and where it becomes uncomfortable.','Before waiting for another message, list three things you have been tolerating.'],advice:['Do not spend all your energy guessing someone else. Return some of it to your own standard.']},
-      work:{key:['This reading shows that energy management matters more than ability right now.','The issue is not simply working harder, but seeing how much the current method is wearing you down.'],action:['Instead of adding more tasks, decide one work pattern you will stop repeating.','Separate what must be solved now from what should be judged this week.'],advice:['Diligence is useful, but it should not become an excuse to ignore exhaustion.']},
-      choice:{key:['The key is not a perfect answer, but which responsibility you can actually carry.','Your hesitation may be less about missing information and more about the burden after deciding.'],action:['Write the realistic cost of each option, not only the possible benefit.','Choose one direction that feels manageable, not perfect.'],advice:['Not deciding is also a decision. Waiting forever can quietly choose for you.']}
-    };var p=packs[forced||selCat]||packs.emotion;return {key_insight:pickStable(p.key,seed+11), action_today:pickStable(p.action,seed+13), advice:pickStable(p.advice,seed+17)};
-  }
-  if(currentLang==='CN'){
-    var packsCN={
-      emotion:{key:['重点不是消除情绪，而是看见它在哪里变大。','真正重要的不是你太敏感，而是什么让这种敏感反复出现。'],action:['写下今天最强烈的一个情绪，以及让它变大的一个场景。','睡前写下“最消耗我的想法”和“明天要停止的一个行动”。'],advice:['不要只抓住好听的话，留下那句有点刺痛你的句子，它可能才是真正的建议。']},
-      love:{key:['关系的重点不只是对方的心意，而是你一直允许了什么。','这次解读指向你在关系中被动摇的标准。'],action:['写下什么态度你可以接受，哪里开始让你不舒服。','在继续等待之前，先写下你一直忍受的三件事。'],advice:['不要把全部能量用来猜测别人，把一部分还给自己的标准。']},
-      work:{key:['现在比能力更重要的是能量管理。','问题不只是更努力，而是目前的方式正在消耗你多少。'],action:['不要增加更多任务，先决定一个不再重复的工作模式。','把必须马上处理的事和本周需要判断的事分开。'],advice:['认真是优点，但不应该变成忽略疲惫的借口。']},
-      choice:{key:['重点不是完美答案，而是你能承担哪一种责任。','你的犹豫可能不是信息不足，而是害怕决定之后的重量。'],action:['写下每个选择最现实的代价，而不只是好处。','选择一个能承担的方向，而不是完美方向。'],advice:['不决定也是一种决定，拖太久会让时间替你选择。']}
-    };var pc=packsCN[forced||selCat]||packsCN.emotion;return {key_insight:pickStable(pc.key,seed+11), action_today:pickStable(pc.action,seed+13), advice:pickStable(pc.advice,seed+17)};
-  }
-  var packs={
-    emotion:{key:['지금 필요한 것은 감정을 없애는 일이 아니라, 감정이 커지는 정확한 지점을 알아차리는 일입니다.','마음이 예민한 상태라는 사실보다, 무엇이 그 예민함을 반복시키는지 발견하는 것이 이번 리딩의 핵심입니다.'],action:['오늘은 가장 크게 남는 감정 하나와 그 감정을 키운 장면 하나를 적어보세요. 감정이 구체화되면 선택도 선명해집니다.','자기 전 5분만 써서 “지금 나를 가장 지치게 하는 생각”과 “내일 멈출 행동 하나”를 적어보세요.'],advice:['좋은 말만 붙잡지 말고, 오늘 가장 찔렸던 문장 하나를 남겨두세요. 그 문장이 지금의 진짜 조언일 가능성이 큽니다.','감정을 빨리 정리하려 하지 말고, 반복되는 패턴에 이름을 붙여보세요. 이름 붙인 감정은 덜 휘두릅니다.']},
-    love:{key:['관계의 핵심은 상대의 속마음보다, 내가 어떤 태도를 계속 허용하고 있는지에 더 가깝습니다.','이번 리딩은 사랑의 유무보다 관계 안에서 내 기준이 흔들리고 있는 부분을 더 강하게 보여줍니다.'],action:['오늘은 상대를 분석하기보다 “나는 어떤 말과 태도까지는 괜찮고, 어디부터는 불편한가”를 문장으로 적어보세요.','연락을 더 기다릴지 정하기 전에, 이 관계에서 내가 계속 참아온 지점 세 가지를 먼저 적어보세요.'],advice:['누군가의 마음을 추측하는 데 에너지를 다 쓰지 마세요. 그 에너지 일부를 나를 지키는 기준으로 돌려야 합니다.','다정함과 불확실함은 함께 올 수 있습니다. 하지만 불확실함이 계속될수록 기준은 더 분명해져야 합니다.']},
-    work:{key:['이번 리딩은 실력보다 에너지 관리가 더 중요한 문제로 올라와 있음을 보여줍니다.','일·커리어에서 핵심은 더 버티는 것이 아니라, 지금 방식이 나를 얼마나 깎고 있는지 확인하는 데 있습니다.'],action:['오늘은 해야 할 일 목록보다, 더 이상 같은 방식으로 하지 않을 일 하나를 먼저 정리해보세요.','내일을 위해 “지금 바로 해결할 일”과 “이번 주 안에 판단할 일”을 나눠 쓰세요. 일이 아니라 기준을 정리하는 것이 먼저입니다.'],advice:['성실함은 장점이지만, 소진을 무시하는 변명이 되면 오래가지 못합니다. 버티는 힘과 회복하는 기준을 같이 세워야 합니다.','이직이든 잔류든 중요한 것은 도망이 아니라 방향입니다. 방향을 보려면 먼저 지금의 피로를 인정해야 합니다.']},
-    choice:{key:['선택·결정 리딩의 핵심은 정답 찾기가 아니라, 어느 방향의 책임을 감당할 수 있는지 보는 것입니다.','지금 망설임은 정보 부족보다 결론 이후의 부담이 두려운 상태에 더 가깝습니다.'],action:['오늘은 두 선택지를 비교하기보다, 각 선택 뒤에 따라오는 가장 현실적인 비용 하나씩을 적어보세요.','정답을 찾으려 하지 말고 “내가 실제로 감당 가능한 방향” 하나를 오늘 안에 문장으로 정리해보세요.'],advice:['미루는 동안에도 선택은 진행되고 있습니다. 결정하지 않는 상태 역시 하나의 결정이라는 점을 잊지 마세요.','확신이 100% 생길 때까지 기다리기보다, 60%의 납득으로 움직일 수 있는지 보는 편이 현실적입니다.']}
-  };
-  var p=packs[forced||selCat]||packs.emotion;
-  return {key_insight:pickStable(p.key,seed+11), action_today:pickStable(p.action,seed+13), advice:pickStable(p.advice,seed+17)};
-}
-function showFree(){
-  var cards=drawn.map(d=>CARDS[d.idx]),names=cards.map(getCardName),main=cards[0],quote=pickQuote(cards),pack=makeCategoryPack(cards);
-  var text,longer,adviceTitle,warningTitle,shadowTitle,resultTitle,deepTxt,retryTxt,previewTxt;
-  if(currentLang==='EN'){
-    text=(user.mood?user.mood+' is present, and ':'')+getCardName(main)+' appears in this reading. '+concernHook()+ 'This card asks you to separate emotion from reality and notice the pattern you may be repeating.';
-    longer='Rather than giving only comforting words, this reading points to the uncomfortable pattern behind the situation. It asks where the feeling grows, what decision is being delayed, and what small action could shift the flow today.';
-    resultTitle='✨ Today’s Emotional Message'; adviceTitle='🍃 Today’s Advice'; warningTitle='⚠️ Caution'; shadowTitle='🌑 Shadow Message'; deepTxt='🔮 Open Deep Emotional Report'; retryTxt='Draw Again'; previewTxt='Free Preview';
-  }else if(currentLang==='CN'){
-    text=(user.mood?user.mood+' 的情绪中，':'')+getCardName(main)+' 出现在这次解读里。'+concernHook()+'这张牌提醒你，把情绪和现实分开，看见自己正在重复的模式。';
-    longer='这次解读不只给安慰，而是指出隐藏在情况背后的不舒服模式。它会帮助你看见情绪在哪里变大、哪个决定被推迟，以及今天可以改变流向的小行动。';
-    resultTitle='✨ 今日情绪讯息'; adviceTitle='🍃 今日建议'; warningTitle='⚠️ 今日提醒'; shadowTitle='🌑 阴影讯息'; deepTxt='🔮 查看深度情绪报告'; retryTxt='重新抽牌'; previewTxt='免费预览';
-  }else{
-    text=(user.mood?user.mood+'이라는 감정이 올라온 상태에서 ':'')+getCardName(main)+' 카드가 놓였습니다. '+toneSentence()+' '+categorySentence()+' '+concernHook();
-    longer='이 카드는 좋은 말만 건네기보다 지금 반복되는 패턴을 조용히 짚습니다. 지금의 불편함이 어디에서 커지는지, 내가 무엇을 알면서도 미루고 있는지, 그리고 오늘 어떤 작은 행동을 시작해야 흐름이 달라질 수 있는지를 보여줍니다.';
-    resultTitle='✨ 오늘의 감정 메시지'; adviceTitle='🍃 오늘의 조언'; warningTitle='⚠️ 오늘의 주의점'; shadowTitle='🌑 그림자 메시지'; deepTxt='🔮 감정 심층 리포트 보기'; retryTxt='다시 뽑기'; previewTxt='무료 미리보기';
-  }
-  var chips=[getCatName(),main.emotion,main.shadow].filter(Boolean);
-  var q='<div class="quote-card"><div class="quote-head">★ '+LT('오늘의 명언 카드','Today’s Quote Card','今日金句卡')+'</div><div class="quote-txt">“'+quote.q+'”</div><div class="quote-author">- '+quote.a+'</div></div>';
-  var advice='<div class="advice-card"><b>'+adviceTitle+'</b><br>'+pack.advice+'</div>';
-  var warning='<div class="warning-card"><b>'+warningTitle+'</b><br>'+cautionLine()+'</div>';
-  var shadow='<div class="shadow-card"><b>'+shadowTitle+'</b><br>'+shadowLine(main)+'</div>';
-  $('resultArea').innerHTML='<div class="result-card"><div class="result-title">'+resultTitle+' <span class="badge">'+previewTxt+'</span></div><div class="result-text">'+text+'</div><div class="result-long">'+longer+'</div><div class="chips">'+chips.map(c=>'<span class="chip">'+htmlEscape(c)+'</span>').join('')+'</div>'+q+advice+warning+shadow+buildMemoryInsight(names)+buildStoryTeaser(names)+'</div><div class="action-row"><button class="btn purple" id="deepBtn">'+deepTxt+' <span style="font-size:10px;opacity:.7">· '+getPrice()+'</span></button><button class="btn ghost" id="retryBtn">'+retryTxt+'</button></div>';
-  $('deepBtn').onclick=showPay;$('retryBtn').onclick=function(){resetGame(true)}
-}
-function buildMemoryInsight(names){
-  var r=storeGet().readings||[],rep=getRepeatedCard(r),last=r[r.length-1];
-  if(!r.length)return '<div class="memory-box">'+LT('🧠 첫 기록입니다. 이번 리딩이 저장되면 다음부터 감정 흐름과 반복 카드를 이어서 보여드릴게요.','🧠 This is your first record. After this reading is saved, future readings can connect your emotional flow and repeated cards.','🧠 这是第一条记录。保存本次解读后，下次会连接你的情绪流向和重复出现的牌。')+'</div>';
-  var msg=LT('🧠 이전 기록과 연결하면, 지금의 주제는 완전히 새롭다기보다 쌓여온 감정의 다음 장면에 가깝습니다.','🧠 Connected with past records, this theme feels less like something new and more like the next scene of an accumulated feeling.','🧠 与之前记录连接来看，现在的主题并不是全新的，更像是累积情绪的下一幕。');
-  if(rep)msg+=' '+LT('특히 ','Especially ','尤其是 ')+'<b>'+rep+'</b>'+LT(' 카드가 반복되어 같은 마음의 문을 다시 두드리고 있어요.',' repeats, knocking on the same emotional door again.',' 这张牌反复出现，像是在再次敲响同一扇心门。');
-  if(last&&last.cat===selCat)msg+=' '+LT('같은 주제를 다시 선택한 것도 하나의 신호입니다. 마음이 아직 정리되지 않은 부분이 있을 수 있어요.','Choosing the same topic again is also a signal. Something may still be unresolved.','再次选择同一主题也是一种信号，心里可能还有未整理的部分。');
-  return '<div class="memory-box">'+msg+'</div>'
-}
-function buildStoryTeaser(names){
-  var r=storeGet().readings||[],day=r.length+1;
-  if(day===1)return '<div class="story-box">📖 <b>'+LT('오라클 다이어리 Day 1','Oracle Diary Day 1','神谕日记 Day 1')+'</b><br>'+LT('오늘부터 감정의 연속 스토리가 시작됩니다. 첫 장의 제목은 “나를 다시 읽는 밤”입니다.','Your emotional story begins today. The first chapter is “The Night I Read Myself Again.”','从今天开始，情绪的连续故事展开。第一章叫“重新读懂自己的夜晚”。')+'</div>';
-  return '<div class="story-box">📖 <b>'+LT('오라클 다이어리 Day ','Oracle Diary Day ','神谕日记 Day ')+day+'</b><br>'+LT('이전 기록 위에 오늘의 카드가 이어졌습니다. 이번 장의 키워드는 “','Today’s card continues from previous records. This chapter’s keyword is “','今天的卡牌延续在之前的记录之上。本章关键词是“')+htmlEscape(names[0])+'”</div>'
-}
-function showPay(){
-  closeModal('payWrap');
-  var title=getCatName()+' · '+getModeName();
-  var html='<div class="modal-bg" id="payWrap"><div class="paycard"><div class="paytitle">'+title+'</div><div class="paysub">'+LT('예언이 아닌 감정 정리 리포트','An emotional reflection report, not a prediction','这不是预言，而是情绪整理报告')+'</div><div class="payamt"><div class="paynum">'+getPrice()+'</div><div class="small">'+LT('Beta 시즌 무료 심층 콘텐츠','Free deep content during Beta','Beta 期间免费深度内容')+'</div></div><div class="payrow"><span>'+LT('정교한 카드 이미지 기반 리딩','Reading based on detailed tarot imagery','基于精致塔罗图像的解读')+'</span><span>'+LT('포함','Included','包含')+'</span></div><div class="payrow"><span>'+LT('긴 감정 메시지 + 조언','Long emotional message + advice','长篇情绪讯息 + 建议')+'</span><span>'+LT('포함','Included','包含')+'</span></div><div class="payrow"><span>'+LT('그림자 메시지 + 오늘의 주의점','Shadow message + today’s caution','阴影讯息 + 今日提醒')+'</span><span>'+LT('포함','Included','包含')+'</span></div><div class="payrow"><span>'+LT('명언 카드 + SNS 저장','Quote card + social saving','金句卡 + 社交保存')+'</span><span>'+LT('포함','Included','包含')+'</span></div><button class="btn" style="margin-top:12px" onclick="confirmPay()">'+LT('무료로 심층 리포트 보기','Open deep report for free','免费查看深度报告')+'</button><button class="btn dark" style="margin-top:6px" onclick="closeModal(\'payWrap\')">'+LT('취소','Cancel','取消')+'</button></div></div>';
-  document.body.insertAdjacentHTML('beforeend',html)
-}
-function generateDeep(){
-  var cards=drawn.map(d=>CARDS[d.idx]),names=cards.map(getCardName),rep=getRepeatedCard(storeGet().readings||[]),quote=pickQuote(cards),pack=makeCategoryPack(cards),main=cards[0],seed=calcSeed(cards);
-  var story;
-  if(currentLang==='EN'){
-    story='This reading connects '+names.join(', ')+' into one emotional storyline. '+concernHook()+'The cards do not decide your future. They help you see where your mind is shaken, what decision is being delayed, and where a realistic standard is needed.';
-    if(detectConcernType()==='work')story+=' For a job-change concern, the key is to check whether your exhaustion is temporary or structural, and whether the next move is avoidance or growth.';
-  }else if(currentLang==='CN'){
-    story='这次解读把 '+names.join(', ')+' 连接成一条情绪线索。'+concernHook()+'牌并不是决定未来，而是帮助你看见内心在哪里动摇、哪个决定被推迟，以及哪里需要现实标准。';
-    if(detectConcernType()==='work')story+=' 如果是换工作的问题，重点是判断疲惫是暂时的还是结构性的，以及下一步是逃避还是成长。';
-  }else{
-    story='이번 리딩은 '+names.join(', ')+' 카드가 하나의 감정선을 만들고 있습니다. '+toneSentence()+' '+categorySentence()+' '+concernHook();
-    if(rep)story+='최근 반복된 '+rep+'의 흔적은 같은 감정을 여러 번 다른 방식으로 마주하고 있다는 뜻처럼 보입니다. ';
-    story+='오늘의 카드는 미래를 단정하지 않습니다. 대신 지금의 마음이 어디에서 흔들리고, 어떤 이유로 결정을 미루며, 어디에서 현실적인 기준을 세워야 하는지를 보여주는 감정 지도에 가깝습니다.'; if(detectConcernType()==='work')story+=' 이직 고민이라면 오늘의 판단 기준은 “좋은 회사냐 나쁜 회사냐”보다, 지금의 피로가 일시적인지 구조적인지, 그리고 다음 선택이 회피인지 성장인지 구분하는 데 있습니다.';
-  }
-  var growths=currentLang==='EN'?['Do not try to erase anxiety first. Read the boundary and need behind it.','A small break in a repeated pattern can create a stronger shift than solving everything at once.','This reading says standards should come before certainty. When standards appear, emotional noise gets quieter.']:(currentLang==='CN'?['先不要急着消除不安，而要读懂它背后的边界和需求。','切断一个重复的小模式，比一次解决所有问题更有力量。','这次解读提醒你，标准要先于确定感。标准出现后，情绪噪音会变小。']:['불안을 없애려 하기보다, 불안이 알려주는 경계와 필요를 읽는 쪽이 더 현실적입니다.','문제를 크게 풀려고 하기보다 반복되는 장면 하나를 끊는 편이 훨씬 강한 변화가 됩니다.','지금의 리딩은 확신보다 기준이 먼저라는 메시지를 줍니다. 기준이 생기면 감정의 소음도 줄어듭니다.']);
-  var detail={story:story,key_insight:pack.key_insight,action_today:pack.action_today,growth_tip:pickStable(growths,seed+21),shadow_msg:shadowLine(main),caution_msg:cautionLine(),truth_msg:truthLine(),quote:quote.q,quote_author:quote.a,advice:pack.advice,lucky_color:['금색','남색','라벤더','아이보리','올리브'][seed%5],lucky_time:['오전 9~11시','오후 2~4시','저녁 8~10시','잠들기 전 10분'][seed%4],lucky_direction:['동쪽','남쪽','서쪽','북쪽','창가'][seed%5]};
-  cards.forEach(function(c,i){detail['card'+(i+1)]={symbol:getCardName(c)+' '+LT('카드는 현재 흐름의 상징입니다.','symbolizes the current emotional flow.','象征着当前的情绪流向。'),psychology:LT('현재 마음은 '+c.emotion+' 쪽으로 기울어 있습니다. 동시에 '+c.shadow+'의 그림자도 함께 살펴야 합니다.','Your mind leans toward '+c.emotion+'. At the same time, the shadow of '+c.shadow+' should also be noticed.','现在的内心倾向于 '+c.emotion+'，同时也需要看见 '+c.shadow+' 的阴影。'),situation:LT(getCatName()+' 관점에서 보면 이 카드는 지금 정리해야 할 기준을 보여줍니다.','From the perspective of '+getCatName()+', this card shows the standard you need to clarify now.','从 '+getCatName()+' 的角度看，这张牌显示现在需要整理的标准。'),action:LT('오늘은 실행 가능한 한 가지로 줄여보세요. 선택은 작을수록 오래 갑니다.','Reduce it to one doable action today. The smaller the choice, the longer it lasts.','今天把它缩小成一个可以执行的行动。选择越小，越容易持续。')}})
-  return detail
-}
-function confirmPay(){closeModal('payWrap');bgm.sfx('deep');var r=generateDeep();showDeep(r);saveReading(r);renderMemory()}
-function showDeep(r){
-  rdData=r;var pos=getPos(),cards=drawn.map(d=>CARDS[d.idx]);
-  var heroCards=cards.map(function(c,i){return '<div class="hero-slot"><div class="hmini">'+makeCardHTML(c)+'</div><div class="hcname">'+pos[i]+'<br>'+htmlEscape(getCardName(c))+'</div></div>'}).join('');
-  var labels={symbol:LT('🎴 상징','🎴 Symbol','🎴 象征'),psych:LT('🧠 심리','🧠 Psychology','🧠 心理'),sit:LT('🎯 상황','🎯 Situation','🎯 情况'),shadow:LT('🌑 그림자','🌑 Shadow','🌑 阴影'),act:LT('💡 행동','💡 Action','💡 行动')};
-  var acc=cards.map(function(c,i){var cd=r['card'+(i+1)]||{};return '<div class="acc"><div class="acc-h" onclick="toggleAcc('+i+')"><span class="acc-p">'+pos[i]+'</span><span class="acc-n">'+htmlEscape(getCardName(c))+' · '+htmlEscape(transKW(c.kw))+'</span><span>▾</span></div><div class="acc-b" id="acc'+i+'"><div class="acc-sec"><div class="acc-sl">'+labels.symbol+'</div><div class="acc-st">'+cd.symbol+'</div></div><div class="acc-sec"><div class="acc-sl">'+labels.psych+'</div><div class="acc-st">'+cd.psychology+'</div></div><div class="acc-sec"><div class="acc-sl">'+labels.sit+'</div><div class="acc-st">'+cd.situation+'</div></div><div class="acc-sec"><div class="acc-sl">'+labels.shadow+'</div><div class="acc-st">'+shadowLine(c)+'</div></div><div class="acc-sec"><div class="acc-sl">'+labels.act+'</div><div class="acc-st">'+cd.action+'</div></div></div></div>'}).join('');
-  var html='<div class="modal-bg" id="deepWrap"><div class="paycard"><div class="hero"><div class="hero-cards">'+heroCards+'</div><div class="hero-title">'+getCatName()+' '+LT('리포트','Report','报告')+'</div><div class="hero-msg">'+r.story+'</div><div class="insight"><div class="insight-lbl">KEY INSIGHT</div><div class="insight-txt">'+r.key_insight+'</div></div><div class="insight"><div class="insight-lbl">TODAY ACTION</div><div class="insight-txt">'+r.action_today+'</div></div><div class="lucky"><div class="lk"><div class="lki">🎨</div><div class="lkl">'+LT('색','Color','颜色')+'</div><div class="lkv">'+r.lucky_color+'</div></div><div class="lk"><div class="lki">⏰</div><div class="lkl">'+LT('시간','Time','时间')+'</div><div class="lkv">'+r.lucky_time+'</div></div><div class="lk"><div class="lki">🧭</div><div class="lkl">'+LT('장소','Place','地点')+'</div><div class="lkv">'+r.lucky_direction+'</div></div></div><div class="hero-msg" style="font-size:11px;color:rgba(232,210,138,.9)">'+r.growth_tip+'</div><div style="margin:11px 14px"><div class="warning-card">⚠️ <b>'+LT('오늘의 주의점','Today’s Caution','今日提醒')+'</b><br>'+r.caution_msg+'</div><div class="shadow-card">🌑 <b>'+LT('불편한 진실','Uncomfortable Truth','不舒服的真相')+'</b><br>'+r.truth_msg+'<br><br><b>'+LT('그림자 메시지','Shadow Message','阴影讯息')+'</b><br>'+r.shadow_msg+'</div></div><div style="margin:11px 14px"><div class="quote-card"><div class="quote-head">★ '+LT('명언 & 조언 카드','Quote & Advice Card','金句与建议卡')+'</div><div class="quote-txt">“'+r.quote+'”</div><div class="quote-author">- '+r.quote_author+'</div></div><div class="advice-card">🪶 <b>'+LT('조언','Advice','建议')+'</b><br>'+r.advice+'</div></div><div class="share"><div class="share-lbl">✦ '+LT('SNS 공유','Share','分享')+' ✦</div><div class="share-btns"><button class="btn purple" onclick="shareImg()">📸 '+LT('인스타','Instagram','图卡')+'</button><button class="btn" onclick="shareText()">🪶 '+LT('명언','Quote','金句')+'</button><button class="btn ghost" onclick="shareKakao()">💬 '+LT('카카오','Square','方形')+'</button></div></div><div class="accord">'+acc+'</div></div><div class="action-row"><button class="btn dark" onclick="closeModal(\'deepWrap\')">'+LT('닫기','Close','关闭')+'</button><button class="btn ghost" onclick="resetGame(true)">'+LT('새로 뽑기','Draw Again','重新抽牌')+'</button></div></div></div>';
-  closeModal('deepWrap');document.body.insertAdjacentHTML('beforeend',html);var first=$('acc0');if(first)first.classList.add('open')
-}
-function toggleAcc(i){document.querySelectorAll('.acc-b').forEach((b,idx)=>b.classList.toggle('open',idx===i&&!b.classList.contains('open')))}
-function saveReading(r){var s=storeGet();s.readings=s.readings||[];s.readings.push({date:new Date().toISOString(),mood:user.mood,cat:selCat,mode:selMode,cards:drawn.map(d=>getCardName(CARDS[d.idx])),story:(r.story||'').slice(0,180)});if(s.readings.length>30)s.readings=s.readings.slice(-30);storeSet(s)}
-function showDiary(){
-  var r=(storeGet().readings||[]);
-  if(!r.length){toast(LT('아직 저장된 감정 기록이 없습니다','No emotional records saved yet','还没有保存的情绪记录'));return}
-  var html='<div class="modal-bg" id="diaryWrap"><div class="paycard"><div class="paytitle">📖 '+LT('오라클 다이어리','Oracle Diary','神谕日记')+'</div><div class="paysub">'+LT('기기 안에 저장된 최근 감정 흐름','Recent emotional flow saved on this device','保存在本设备中的近期情绪流向')+'</div>';
-  r.slice(-8).reverse().forEach(function(x,i){html+='<div class="result-card" style="margin:7px 0"><div class="result-title">Day '+(r.length-i)+' <span class="badge">'+(x.mood||LT('감정 미입력','No mood','未填写情绪'))+'</span></div><div class="small">'+new Date(x.date).toLocaleString()+' · '+x.cards.join(', ')+'</div><div class="result-text" style="font-size:11px">'+htmlEscape(x.story)+'</div></div>'});
-  html+='<button class="btn dark" onclick="closeModal(\'diaryWrap\')">'+LT('닫기','Close','关闭')+'</button><button class="btn ghost" style="margin-top:7px" onclick="clearDiary()">'+LT('기록 초기화','Clear Records','清除记录')+'</button></div></div>';
-  document.body.insertAdjacentHTML('beforeend',html)
-}
-function clearDiary(){localStorage.removeItem('haji_mood_v35');closeModal('diaryWrap');renderMemory();toast(LT('기록을 초기화했어요','Records cleared','记录已清除'))}
-function closeModal(id){var e=$(id);if(e)e.remove()}
-function resetGame(){drawn=[];flipped=0;allFlipped=false;rdData=null;$('spreadArea').innerHTML='';$('resultArea').innerHTML='';['deepWrap','payWrap','diaryWrap'].forEach(closeModal)}
-
-/* ---------- FEEDBACK ---------- */
-var FEEDBACK_URL = ''; // 구글폼을 만든 뒤 이곳에 링크를 넣으면 Beta 피드백이 구글시트에 저장됩니다.
-function openFeedback(){
-  if(FEEDBACK_URL){window.open(FEEDBACK_URL,'_blank');return}
-  var old=$('feedbackWrap'); if(old) old.remove();
-  var html='<div class="modal-bg" id="feedbackWrap"><div class="paycard"><div class="paytitle">Beta '+LT('피드백','Feedback','反馈')+'</div><div class="paysub">'+LT('구글폼 링크를 연결하면 테스트 의견을 구글시트로 모을 수 있어요.','Connect a Google Form link to collect test feedback in Google Sheets.','连接 Google Form 链接后，可以把测试反馈收集到表格中。')+'</div><div class="result-card"><div class="result-title">📝 '+LT('추천 질문 6개','6 suggested questions','推荐的6个问题')+'</div><div class="result-text" style="font-size:11.5px">'+LT('1. 결과가 내 상황과 비슷하게 느껴졌나요?<br>2. 메시지가 현실적으로 느껴졌나요?<br>3. 카드 이미지가 저장하고 싶을 만큼 예뻤나요?<br>4. 다시 방문해서 또 해보고 싶나요?<br>5. 유료라면 어느 가격까지 괜찮나요?<br>6. 가장 아쉬운 점은 무엇인가요?','1. Did the result feel relevant to your situation?<br>2. Did the message feel realistic?<br>3. Was the card image worth saving?<br>4. Would you visit again?<br>5. What price would feel acceptable?<br>6. What felt lacking?','1. 结果是否贴近你的情况？<br>2. 讯息是否现实？<br>3. 图片卡是否值得保存？<br>4. 是否想再次使用？<br>5. 如果收费，能接受什么价格？<br>6. 最遗憾的地方是什么？')+'</div></div><button class="btn" onclick="closeModal(\'feedbackWrap\')">'+LT('확인','OK','确认')+'</button></div></div>';
-  document.body.insertAdjacentHTML('beforeend',html);
-}
-
-function showSub(){$('subOverlay').style.display='flex'}
-function hideSub(){$('subOverlay').style.display='none'}
-function pickPlan(p){selPlan=p;$('subConfirmBtn').textContent=p==='monthly'?LT('월간 Pro 예정 가격 확인','Check planned monthly Pro price','确认月度 Pro 预定价格'):LT('Beta 무료로 열기','Open Beta for free','免费开启 Beta')}
-function confirmSub(){isPremium=true;toast(LT('Beta 무료 체험이 열렸어요','Beta free trial opened','Beta 免费体验已开启'));hideSub();setN(6)}
-
-/* share image */
-function round(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}
-function panel(ctx,x,y,w,h,r,fill,stroke){ctx.save();round(ctx,x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke()}ctx.restore()}
-function lineWrap(ctx,text,maxWidth){var chars=String(text||'').split(''),lines=[],line='';chars.forEach(function(ch){var test=line+ch;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=ch}else line=test});if(line)lines.push(line);return lines}
-function drawTextBlock(ctx,text,x,y,maxWidth,lineHeight,align,maxLines,color){ctx.save();ctx.fillStyle=color||ctx.fillStyle;ctx.textAlign=align||'left';var lines=lineWrap(ctx,text,maxWidth);if(maxLines&&lines.length>maxLines){lines=lines.slice(0,maxLines);var last=lines[lines.length-1];while(ctx.measureText(last+'…').width>maxWidth&&last.length>1){last=last.slice(0,-1)}lines[lines.length-1]=last+'…'}lines.forEach(function(line,i){ctx.fillText(line,x,y+i*lineHeight)});ctx.restore();return lines.length}
-function drawStarField(ctx,W,H,count){for(var i=0;i<count;i++){var a=Math.random()*0.46+0.06,s=Math.random()*2.2+0.45;ctx.fillStyle='rgba(255,255,255,'+a+')';ctx.beginPath();ctx.arc(Math.random()*W,Math.random()*H,s,0,Math.PI*2);ctx.fill()}}
-function drawGlow(ctx,x,y,r,color,alpha){var g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,'rgba('+color+','+alpha+')');g.addColorStop(1,'rgba('+color+',0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
-function drawOrnament(ctx,W,y){ctx.save();ctx.strokeStyle='rgba(201,168,76,.45)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(160,y);ctx.lineTo(420,y);ctx.moveTo(660,y);ctx.lineTo(920,y);ctx.stroke();ctx.beginPath();ctx.arc(W/2,y,30,Math.PI*.18,Math.PI*1.82);ctx.stroke();ctx.fillStyle='rgba(232,210,138,.92)';ctx.beginPath();ctx.arc(W/2,y,8,0,Math.PI*2);ctx.fill();ctx.restore()}
-function loadCardImages(cards, done){
-  var imgs=new Array(cards.length), left=cards.length;
-  if(!left){done(imgs);return}
-  cards.forEach(function(c,i){var img=new Image();img.crossOrigin='anonymous';img.onload=function(){imgs[i]=img;if(--left===0)done(imgs)};img.onerror=function(){imgs[i]=null;if(--left===0)done(imgs)};img.src=c.img});
-}
-function drawFallbackArt(ctx,c,x,y,cw,ch){
-  ctx.save();
-  var g=ctx.createLinearGradient(x,y,x,y+ch);g.addColorStop(0,'#23345d');g.addColorStop(.45,c.c||'#4d2e78');g.addColorStop(1,'#120817');ctx.fillStyle=g;ctx.fillRect(x,y,cw,ch);
-  for(var i=0;i<20;i++){ctx.fillStyle='rgba(255,244,190,'+(0.18+Math.random()*0.42)+')';ctx.beginPath();ctx.arc(x+18+Math.random()*(cw-36),y+20+Math.random()*(ch*.34),Math.random()*1.7+0.7,0,Math.PI*2);ctx.fill()}
-  var moonX=x+cw*.5, moonY=y+ch*.28;ctx.strokeStyle='rgba(255,228,160,.62)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(moonX,moonY,cw*.14,0,Math.PI*2);ctx.stroke();
-  ctx.fillStyle='rgba(255,228,160,.16)';ctx.beginPath();ctx.arc(moonX,moonY,cw*.1,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='rgba(8,7,20,.5)';ctx.beginPath();ctx.moveTo(x+10,y+ch*.74);ctx.lineTo(x+cw*.24,y+ch*.54);ctx.lineTo(x+cw*.43,y+ch*.72);ctx.lineTo(x+cw*.63,y+ch*.49);ctx.lineTo(x+cw-10,y+ch*.76);ctx.lineTo(x+cw-10,y+ch-10);ctx.lineTo(x+10,y+ch-10);ctx.closePath();ctx.fill();
-  ctx.fillStyle='rgba(247,231,182,.96)';ctx.font='bold '+Math.max(26,cw*.18)+'px Georgia';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c.em||'✦',x+cw/2,y+ch*.52);
-  ctx.restore()
-}
-function drawRichCard(ctx,c,x,y,cw,ch,img){
-  ctx.save();
-  ctx.shadowColor='rgba(0,0,0,.38)';ctx.shadowBlur=34;ctx.shadowOffsetY=18;
-  var frame=ctx.createLinearGradient(x,y,x,y+ch);frame.addColorStop(0,'#f1df9f');frame.addColorStop(.08,'#8f732d');frame.addColorStop(.16,'#13091f');frame.addColorStop(1,'#07030d');
-  round(ctx,x,y,cw,ch,28);ctx.fillStyle=frame;ctx.fill();ctx.shadowColor='transparent';
-  panel(ctx,x+10,y+10,cw-20,ch-20,20,'rgba(255,255,255,.035)','rgba(232,210,138,.38)');
-  ctx.save();round(ctx,x+20,y+20,cw-40,ch-126,16);ctx.clip();
-  if(img){try{ctx.drawImage(img,x+20,y+20,cw-40,ch-126)}catch(e){img=null}}
-  if(!img)drawFallbackArt(ctx,c,x+20,y+20,cw-40,ch-126);
-  ctx.restore();
-  panel(ctx,x+20,y+ch-94,cw-40,60,14,'rgba(6,4,13,.84)','rgba(232,210,138,.22)');
-  ctx.fillStyle='#EEDB9A';ctx.font='bold '+Math.max(18,cw*.07)+'px Georgia';ctx.textAlign='center';ctx.fillText(getCardName(c),x+cw/2,y+ch-58);
-  ctx.fillStyle='rgba(244,239,231,.82)';ctx.font=Math.max(12,cw*.044)+'px Georgia';drawTextBlock(ctx,transKW(c.kw)||'',x+cw/2,y+ch-34,cw-74,16,'center',1,'rgba(244,239,231,.82)');
-  ctx.restore()
-}
-function drawMiniSeal(ctx,c,x,y,r){
-  ctx.save();var g=ctx.createRadialGradient(x-r*.25,y-r*.35,0,x,y,r);g.addColorStop(0,'rgba(255,255,255,.28)');g.addColorStop(.38,'rgba(232,210,138,.22)');g.addColorStop(1,'rgba(15,8,35,.96)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(232,210,138,.58)';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#E8D28A';ctx.font='bold '+(r*.78)+'px Georgia';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(c.em||'✦',x,y+1);ctx.restore()
-}
-function buildCanvas(useImages){return new Promise(function(resolve){
-  if(useImages===undefined)useImages=true;
-  var W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;var ctx=cv.getContext('2d');
-  var cards=drawn.map(function(d){return CARDS[d.idx]}),displayName=(user.name||'').trim();
-  function paint(imgs){
-    var bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#211040');bg.addColorStop(.46,'#090617');bg.addColorStop(1,'#030109');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-    drawGlow(ctx,160,170,300,'123,79,186',0.30);drawGlow(ctx,900,260,340,'201,168,76',0.16);drawGlow(ctx,520,1120,360,'88,60,180',0.16);drawStarField(ctx,W,H,220);
-    ctx.strokeStyle='rgba(201,168,76,.58)';ctx.lineWidth=3;ctx.strokeRect(34,34,W-68,H-68);ctx.strokeStyle='rgba(201,168,76,.22)';ctx.lineWidth=1;ctx.strokeRect(56,56,W-112,H-112);
-    drawOrnament(ctx,W,102);
-    ctx.textAlign='center';ctx.fillStyle='#F1DEA0';ctx.font='bold 42px Georgia';ctx.fillText('HAJI MOOD TAROT',W/2,150);
-    ctx.fillStyle='rgba(244,239,231,.78)';ctx.font='23px Georgia';ctx.fillText(displayName?'For '+displayName:getCatName()+' · '+LT('Real Reading','Real Reading','真实解读'),W/2,184);
-    ctx.fillStyle='rgba(232,210,138,.68)';ctx.font='20px Georgia';ctx.fillText(getCatName()+' · '+(spreadN===1?L('one'):spreadN===3?L('three'):L('six')),W/2,215);
-
-    panel(ctx,82,238,916,spreadN===1?548:spreadN===3?468:438,32,'rgba(255,255,255,.035)','rgba(232,210,138,.18)');
-    if(spreadN===1){
-      drawRichCard(ctx,cards[0],360,278,360,576,imgs&&imgs[0]);
-    }else if(spreadN===3){
-      var cw=250,ch=400,gap=36,sx=(W-(3*cw+2*gap))/2,sy=282;
-      cards.forEach(function(c,i){drawRichCard(ctx,c,sx+i*(cw+gap),sy,cw,ch,imgs&&imgs[i])});
+  const next=useCallback(lvidx=>{
+    clearTimeout(lsT.current);
+    const nq=genQ(lvidx);qR.current=nq;
+    const mc=MODES[mR.current];
+    const qt=getQTimer(mR.current,lvidx); // 레벨별 동적 타이머
+    setQ(nq);setSelA(null);setFbTy(null);setFbTx('');
+    setLockd(false);lkR.current=false;
+    setBgKey('sky');qTR.current=qt;setQTime(qt);stopQ();
+    const startTmr=()=>{
+      qT.current=setInterval(()=>{
+        qTR.current=Math.max(0,qTR.current-1);
+        setQTime(qTR.current);
+        if(qTR.current<=0){clearInterval(qT.current);handleTO();}
+      },1000);
+    };
+    if(mR.current==='listen'){
+      setLstPh(true);
+      setTimeout(()=>{
+        const txt=qSentence(nq.a,nq.op,nq.b,lR.current);
+        // 음성이 완전히 끝난 후 숫자 공개 + 타이머 시작
+        sayAsync(txt,lR.current).then(()=>{
+          clearTimeout(lsT.current);
+          lsT.current=setTimeout(()=>{setLstPh(false);startTmr();},500);
+        });
+        // 안전 폴백: 최대 9초 후 강제 공개
+        lsT.current=setTimeout(()=>{setLstPh(false);startTmr();},9000);
+      },300);
     }else{
-      var cw=178,ch=285,gapX=26,gapY=26,sx=(W-(3*cw+2*gapX))/2,sy=270;
-      cards.forEach(function(c,i){var row=Math.floor(i/3),col=i%3;drawRichCard(ctx,c,sx+col*(cw+gapX),sy+row*(ch+gapY),cw,ch,imgs&&imgs[i])});
+      setLstPh(false);
+      setTimeout(()=>say(qSentence(nq.a,nq.op,nq.b,lR.current),lR.current),350);
+      startTmr();
     }
+  },[handleTO]);
 
-    var msgY=spreadN===1?825:spreadN===3?750:720;
-    panel(ctx,86,msgY,908,218,26,'rgba(7,8,22,.72)','rgba(232,210,138,.22)');
-    ctx.textAlign='left';ctx.fillStyle='#E9D792';ctx.font='bold 20px Georgia';ctx.fillText('KEY MESSAGE',126,msgY+45);
-    ctx.fillStyle='rgba(244,239,231,.96)';ctx.font='28px Georgia';drawTextBlock(ctx,rdData?rdData.key_insight:'오늘의 감정을 정리하는 카드입니다.',126,msgY+90,828,41,'left',3,'rgba(244,239,231,.96)');
+  const startGame=m=>{
+    clearInterval(gT.current);stopQ();clearTimeout(lsT.current);
+    const mc=MODES[m];
+    mR.current=m;lvR.current=mc.startLv;livR.current=mc.lives;
+    scR.current=0;crR.current=0;ttR.current=0;cbR.current=0;mcR.current=0;lkR.current=false;
+    setMode(m);setScore(0);setLives(mc.lives);setTimeLft(60);setLv(mc.startLv);
+    setCorr(0);setTot(0);setCombo(0);setMaxCombo(0);
+    setFbTy(null);setFbTx('');setSelA(null);setLockd(false);
+    setLvAnim(false);setStars([]);setSAnim(null);setBgKey('sky');setLstPh(false);setPetPulse(false);
+    setScr('game');
+    if(m==='time'){
+      gT.current=setInterval(()=>{
+        setTimeLft(p=>{
+          if(p<=1){clearInterval(gT.current);stopQ();say(rnd(PH.over,lR.current),lR.current);setScr('result');return 0;}
+          return p-1;
+        });
+      },1000);
+    }
+    if(bgmOn)BGM.start();
+    setTimeout(()=>next(mc.startLv),200);
+  };
 
-    var qY=msgY+250;
-    panel(ctx,86,qY,908,220,26,'rgba(255,255,255,.05)','rgba(232,210,138,.18)');
-    ctx.fillStyle='#C9A84C';ctx.font='bold 20px Georgia';ctx.fillText('QUOTE & SHADOW NOTE',126,qY+44);
-    var q=rdData&&rdData.quote?rdData.quote:pickQuote(cards).q, qa=rdData&&rdData.quote_author?rdData.quote_author:pickQuote(cards).a;
-    ctx.fillStyle='rgba(244,239,231,.96)';ctx.font='30px Georgia';drawTextBlock(ctx,'“'+q+'”',126,qY+88,828,40,'left',3,'rgba(244,239,231,.96)');
-    ctx.fillStyle='rgba(232,210,138,.78)';ctx.font='22px Georgia';ctx.fillText('- '+qa,126,qY+196);
-    ctx.fillStyle='rgba(244,239,231,.82)';ctx.font='20px Georgia';drawTextBlock(ctx,rdData?rdData.shadow_msg:'좋은 말만 붙잡기보다, 지금 피하고 싶은 감정을 함께 바라보세요.',126,qY+230,828,28,'left',2,'rgba(244,239,231,.82)');
+  const handleA=c=>{
+    SFX.unlock();
+    if(lkR.current)return;
+    stopQ();lkR.current=true;setLockd(true);setSelA(c);
+    const ok=c===qR.current?.answer;
+    ttR.current++;setTot(ttR.current);
+    if(ok){
+      const nc=cbR.current+1;cbR.current=nc;setCombo(nc);
+      if(nc>mcR.current){mcR.current=nc;setMaxCombo(nc);}
+      const cfg=getLvCfg(lvR.current);  // 무한 레벨 점수 계산
+      const sb=qTR.current>=10?12:qTR.current>=7?6:qTR.current>=4?3:0;
+      const cm=nc>=10?2.2:nc>=5?1.6:nc>=3?1.25:1;
+      // 레벨 7+ 추가 배율: 레벨이 높을수록 점수 배율 증가
+      const infBonus=lvR.current>5?1+(lvR.current-5)*0.3:1;
+      const e=Math.round((cfg.base+sb)*cm*infBonus);
+      scR.current+=e;setScore(scR.current);
+      setSAnim(`+${e}`);setTimeout(()=>setSAnim(null),950);
+      crR.current++;setCorr(crR.current);
+      setFbTy('c');setFbTx(rnd(PH.cUI,lR.current));
+      setBgKey('green');spawnS();SFX.correct();setPetPulse(true);setTimeout(()=>setPetPulse(false),850);
+      if(nc>=3)SFX.combo();
+      // 선택한 숫자를 먼저 읽고 정답 피드백 — "5! 정답이에요!"
+      say(`${c}! ${rnd(PH.cSpeak,lR.current)}`,lR.current);
+      let nlv=lvR.current;
+      if(crR.current%5===0){  // 레벨 상한 제거 — 무한 레벨
+        nlv++;lvR.current=nlv;setLv(nlv);setLvAnim(true);
+        SFX.level();setTimeout(()=>say(rnd(PH.up,lR.current),lR.current),600);
+        setTimeout(()=>setLvAnim(false),2200);
+      }
+      setTimeout(()=>next(nlv),2000); // 피드백 음성 완료 대기
+    }else{
+      SFX.wrong();setBgKey('red');setShake(true);setTimeout(()=>setShake(false),520);
+      cbR.current=0;setCombo(0);
+      setFbTy('w');setFbTx(rnd(PH.wUI,lR.current));
+      say(rnd(PH.wSpeak,lR.current),lR.current);
+      if(mR.current!=='time'){
+        livR.current--;setLives(livR.current);
+        if(livR.current<=0){setTimeout(()=>{say(rnd(PH.over,lR.current),lR.current);setScr('result');},1800);return;}
+      }
+      setTimeout(()=>next(lvR.current),2000); // 피드백 음성 완료 대기
+    }
+  };
 
-    ctx.textAlign='center';ctx.fillStyle='rgba(201,168,76,.58)';ctx.font='20px Georgia';ctx.fillText(LT('Save this reading · Haji Studio','Save this reading · Haji Studio','保存这次解读 · Haji Studio'),W/2,H-78);
-    resolve(cv);
+  const goHome=()=>{clearInterval(gT.current);stopQ();clearTimeout(lsT.current);BGM.stop();setBgmOn(false);setScr('home');};
+  const toggleBGM=async()=>{const n=!bgmOn;setBgmOn(n);const ok=await BGM.toggle(n);if(n&&!ok){console.log('BGM: HTMLAudio blocked, using WebAudio fallback');}};
+  const mi=mode?MODES[mode]:null;
+  const acc=ttR.current>0?Math.round(crR.current/ttR.current*100):0;
+  const qMax=mi?mi.qt:Q_NORMAL;
+  const currentPet=getPet(lv+1);
+
+  /* ── HOME ─────────────────────────────────────────────── */
+  if(scr==='home')return(
+    <div style={{minHeight:'100vh',
+      background:'linear-gradient(135deg,#FF6B6B,#FF8E53,#FFD93D,#6BCB77,#4ECDC4)',
+      backgroundSize:'300% 300%',animation:'homeBG 8s ease infinite',
+      display:'flex',flexDirection:'column',alignItems:'center',
+      padding:'18px 14px 26px',fontFamily:"'Nunito',sans-serif",position:'relative',overflow:'hidden'}}>
+
+      {/* Floating deco */}
+      {[{e:'☀️',s:40,st:{top:'3%',right:'8%',animation:'floatA 4s ease-in-out infinite'}},
+        {e:'🌈',s:34,st:{top:'14%',left:'3%',animation:'floatB 3.5s ease-in-out infinite'}},
+        {e:'⭐',s:28,st:{top:'38%',right:'4%',animation:'floatC 3s ease-in-out infinite'}},
+        {e:'🎈',s:30,st:{bottom:'28%',left:'4%',animation:'floatA 5s ease-in-out infinite'}},
+        {e:'🌸',s:26,st:{bottom:'14%',right:'6%',animation:'floatB 4.5s ease-in-out infinite'}},
+        {e:'☁️',s:36,st:{bottom:'42%',left:'6%',animation:'floatC 6s ease-in-out infinite'}},
+      ].map((d,i)=>(
+        <div key={i} style={{position:'fixed',fontSize:d.s,...d.st,pointerEvents:'none',zIndex:0,filter:'drop-shadow(0 2px 6px rgba(0,0,0,0.15))'}}>{d.e}</div>
+      ))}
+
+      {/* BGM + 음성진단 버튼 */}
+      <div style={{position:'absolute',top:14,right:14,zIndex:10,display:'flex',gap:6}}>
+        <button onClick={()=>{BGM.unlock();refreshVoices();setShowDiag(true);}}
+          style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 10px',color:'white',fontSize:11,fontWeight:900,backdropFilter:'blur(6px)'}}>
+          🔍 음성
+        </button>
+        <button onPointerDown={()=>BGM.unlock()} onClick={toggleBGM} style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 12px',color:'white',fontSize:12,fontWeight:900,backdropFilter:'blur(6px)'}}>
+          {bgmOn?'🎵 ON':'🔇 OFF'}
+        </button>
+      </div>
+
+      {/* 음성 진단 패널 */}
+      {showDiag&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.65)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+          <div style={{background:'white',borderRadius:22,padding:20,width:'100%',maxWidth:400,maxHeight:'85vh',overflowY:'auto'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+              <span style={{fontSize:17,fontWeight:900,color:'#1e1b4b'}}>🔍 음성 진단</span>
+              <button onClick={()=>setShowDiag(false)} style={{background:'#f3f4f6',border:'none',borderRadius:10,padding:'6px 12px',fontSize:13,fontWeight:900,color:'#374151'}}>닫기 ✕</button>
+            </div>
+
+            {/* Web Speech 상태 */}
+            <div style={{background:'#dcfce7',borderRadius:12,padding:'10px 14px',marginBottom:10}}>
+              <div style={{fontSize:12,fontWeight:900,color:'#166534',marginBottom:3}}>
+                Web Speech 음성 엔진
+              </div>
+              <div style={{fontSize:13,fontWeight:700,color:'#15803d'}}>
+                ✅ 현재 버전은 안정성을 위해 브라우저 기본 음성을 사용해요
+              </div>
+              <div style={{fontSize:11,color:'#166534',lineHeight:1.5,marginTop:4}}>
+                Edge/Chrome/iPhone의 목소리가 완전히 같지는 않지만, 음성이 안 나오는 문제를 줄인 버전이에요.
+              </div>
+            </div>
+
+            {/* 언어별 목소리 확인 */}
+            <div style={{fontSize:12,fontWeight:900,color:'#374151',marginBottom:6}}>언어별 잡힌 목소리 (Web Speech)</div>
+            {Object.entries(LC).map(([k,v])=>{
+              const voice=getVoice(v.vl);
+              const ok=voice&&voice.lang.startsWith(v.vl.split('-')[0]);
+              return(
+                <div key={k} style={{display:'flex',alignItems:'center',gap:8,background:'#f9fafb',borderRadius:10,padding:'8px 12px',marginBottom:6}}>
+                  <span style={{fontSize:18}}>{v.flag}</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:12,fontWeight:700,color:'#111827'}}>{v.name}</div>
+                    <div style={{fontSize:11,color:ok?'#16a34a':'#dc2626'}}>
+                      {voice?`${voice.name} (${voice.lang})`:'목소리 없음 — 폴백'}
+                    </div>
+                  </div>
+                  <button onClick={()=>{BGM.unlock();say(
+                    k==='ko'?'안녕하세요 수학 게임입니다':
+                    k==='en'?'Hello, welcome to math game':
+                    k==='zh'?'你好，欢迎来玩数学游戏':'Hola, bienvenido al juego',k)}}
+                    style={{background:'#6366f1',border:'none',borderRadius:8,padding:'5px 10px',color:'white',fontSize:11,fontWeight:900}}>
+                    ▶ 테스트
+                  </button>
+                </div>
+              );
+            })}
+
+            {/* 총 목소리 수 */}
+            <div style={{fontSize:11,color:'#6b7280',textAlign:'center',marginTop:8}}>
+              기기 총 목소리: {_voices.length}개 · 온라인: {navigator.onLine?'✅':'❌'}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logo */}
+      <div style={{zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',width:'100%',maxWidth:440}}>
+        <div style={{fontSize:64,animation:'bounce 2s ease-in-out infinite',filter:'drop-shadow(0 5px 14px rgba(0,0,0,0.2))'}}>🧮</div>
+        <h1 style={{fontSize:'clamp(22px,6vw,32px)',fontWeight:900,color:'white',margin:'4px 0 2px',
+          textShadow:'0 2px 14px rgba(0,0,0,0.28)',textAlign:'center',
+          fontFamily:"'Fredoka One','Nunito',sans-serif",letterSpacing:0.5}}>수학 천재 게임</h1>
+        <p style={{fontSize:13,color:'rgba(255,255,255,0.95)',margin:'0 0 16px',textAlign:'center',fontWeight:800}}>
+          {lang==='ko'?'🧠 즐겁게 배우는 수학 게임!':lang==='en'?'🧠 Learn Math the Fun Way!':lang==='zh'?'🧠 快乐学数学！':'🧠 ¡Aprende Matemáticas!'}
+        </p>
+        <div style={{width:'100%',marginBottom:12}}>
+          <PetCard pet={PETS[1]} lang={lang} score={0} combo={0}/>
+        </div>
+        <div style={{width:'100%',display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:6,marginBottom:12}}>
+          {[['🐣',lang==='ko'?'캐릭터 성장':lang==='en'?'Pet Growth':lang==='zh'?'角色成长':'Mascota'],['🏆',lang==='ko'?'결과 등급':lang==='en'?'Result Grade':lang==='zh'?'成绩等级':'Rango'],['🔔',lang==='ko'?'효과음 강화':lang==='en'?'Fun SFX':lang==='zh'?'趣味音效':'Sonidos']].map((x,i)=>(
+            <div key={i} style={{background:'rgba(255,255,255,0.2)',border:'1.5px solid rgba(255,255,255,0.35)',borderRadius:14,padding:'8px 4px',textAlign:'center',color:'white',fontSize:10,fontWeight:900}}><div style={{fontSize:18}}>{x[0]}</div>{x[1]}</div>
+          ))}
+        </div>
+
+        {/* ── Language selector ── compact, full name */}
+        <div style={{width:'100%',marginBottom:13}}>
+          <p style={{color:'rgba(255,255,255,0.92)',fontSize:11,textAlign:'center',margin:'0 0 7px',fontWeight:900,letterSpacing:0.5}}>🌍 언어 선택 / LANGUAGE</p>
+          <div style={{display:'flex',gap:6}}>
+            {Object.entries(LC).map(([k,v])=>{
+              const sel=lang===k;
+              const testPhrases={
+                ko:'안녕하세요! 수학 게임을 시작해요!',
+                en:'Hello! Let\'s play math!',
+                zh:'你好！我们来玩数学游戏吧！',
+                es:'¡Hola! ¡Vamos a jugar matemáticas!',
+              };
+              return(
+                <button key={k} onClick={()=>{
+                  BGM.unlock();setLang(k);lR.current=k;
+                  // 언어 선택 시 목소리 바로 테스트
+                  setTimeout(()=>say(testPhrases[k],k),100);
+                }}
+                  style={{flex:1,background:sel?'white':'rgba(255,255,255,0.22)',
+                    border:`2.5px solid ${sel?'#FFD600':'rgba(255,255,255,0.45)'}`,
+                    borderRadius:14,padding:'8px 3px',
+                    display:'flex',flexDirection:'column',alignItems:'center',gap:2,
+                    transition:'all 0.2s',
+                    boxShadow:sel?'0 0 0 3px rgba(255,214,0,0.45),0 4px 12px rgba(0,0,0,0.12)':'none',
+                    transform:sel?'scale(1.07)':'scale(1)'}}>
+                  <span style={{fontSize:20}}>{v.flag}</span>
+                  <span style={{fontSize:10,fontWeight:900,color:sel?'#92400E':'white',lineHeight:1.1,textAlign:'center'}}>{v.name}</span>
+                  <span style={{fontSize:9,fontWeight:700,color:sel?'#B45309':'rgba(255,255,255,0.75)',lineHeight:1}}>{v.sub}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Mode cards ── 2×2 compact grid */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,width:'100%',marginBottom:12}}>
+          {Object.values(MODES).map(m=>(
+            <button key={m.id} onClick={()=>{BGM.unlock();startGame(m.id);}}
+              style={{background:'rgba(255,255,255,0.22)',border:'2px solid rgba(255,255,255,0.45)',
+                borderRadius:18,padding:'11px 10px 10px',color:'white',
+                display:'flex',flexDirection:'column',alignItems:'flex-start',gap:3,
+                textAlign:'left',position:'relative',overflow:'hidden',
+                backdropFilter:'blur(8px)',boxShadow:'0 2px 12px rgba(0,0,0,0.08)'}}>
+              {/* badge */}
+              <span style={{position:'absolute',top:7,right:7,background:m.bc,borderRadius:7,
+                padding:'2px 7px',fontSize:9,fontWeight:900,color:'white',lineHeight:1.4}}>{m.badge}</span>
+              <span style={{fontSize:28,filter:'drop-shadow(0 2px 4px rgba(0,0,0,0.18))'}}>{m.icon}</span>
+              <div style={{fontSize:15,fontWeight:900,fontFamily:"'Fredoka One','Nunito',sans-serif",lineHeight:1.1}}>
+                {m.title[lang]||m.title.ko}
+              </div>
+              <div style={{fontSize:10.5,opacity:0.9,lineHeight:1.35,fontWeight:700}}>
+                {m.desc[lang]||m.desc.ko}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <p style={{color:'rgba(255,255,255,0.7)',fontSize:10.5,textAlign:'center',fontWeight:700}}>
+          🔊 음성 지원 · 4가지 언어 · 6단계 레벨
+        </p>
+      </div>
+    </div>
+  );
+
+  /* ── RESULT ───────────────────────────────────────────── */
+  if(scr==='result'){
+    const medal=score>=900?'🥇':score>=400?'🥈':score>=100?'🥉':'🎖️';
+    const mi2=mi||MODES.normal;
+    const praise=score>=900
+      ?{ko:'완전 천재! 대박이에요! 🏆',en:'Pure genius! Amazing! 🏆',zh:'真天才！太厉害了！🏆',es:'¡Genio total! ¡Increíble! 🏆'}
+      :score>=400
+      ?{ko:'정말 잘했어요! 멋져요! ⭐',en:'Great job! You rock! ⭐',zh:'非常好！真棒！⭐',es:'¡Muy bien! ¡Excelente! ⭐'}
+      :{ko:'잘했어요! 다시 도전해봐요! 💪',en:'Good try! Play again! 💪',zh:'加油！再来一次！💪',es:'¡Buen intento! ¡Otra vez! 💪'};
+    return(
+      <div style={{minHeight:'100vh',background:'linear-gradient(145deg,#FF7043,#FFB300,#43A047)',
+        display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+        padding:'20px 14px',fontFamily:"'Nunito',sans-serif"}}>
+        <div style={{fontSize:82,animation:'resultGlow 1.4s ease-in-out infinite',marginBottom:2}}>{getPet(lvR.current+1).emoji}</div>
+        <div style={{fontSize:30,marginBottom:6}}>{medal} {getGrade(score,acc)} 등급</div>
+        <h1 style={{fontSize:28,fontWeight:900,color:'white',margin:'4px 0 6px',
+          textShadow:'0 3px 12px rgba(0,0,0,0.22)',textAlign:'center',
+          fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{T.gameEnd[lang]}</h1>
+        <p style={{fontSize:15,color:'rgba(255,255,255,0.96)',margin:'0 0 12px',fontWeight:800,textAlign:'center'}}>
+          {praise[lang]||praise.ko}
+        </p>
+        <div style={{background:'rgba(255,255,255,0.22)',borderRadius:12,padding:'5px 16px',marginBottom:14,fontSize:13,color:'white',fontWeight:900}}>
+          {LC[lang].flag} {LC[lang].name} · {mi2.icon} {mi2.title[lang]||mi2.title.ko}
+        </div>
+        <div style={{width:'100%',maxWidth:400,marginBottom:12}}>
+          <PetCard pet={getPet(lvR.current+1)} lang={lang} score={score} combo={mcR.current} pulse={true}/>
+        </div>
+        <div style={{background:'rgba(255,255,255,0.18)',borderRadius:20,padding:14,width:'100%',maxWidth:400,
+          display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}}>
+          {[
+            [lang==='ko'?'🎯 점수':lang==='en'?'🎯 Score':lang==='zh'?'🎯 得分':'🎯 Pts',`${score}${lang==='ko'?'점':''}`],
+            [lang==='ko'?'✅ 정답':lang==='en'?'✅ Correct':lang==='zh'?'✅ 正确':'✅ Acierto',`${crR.current}${lang==='ko'?'개':''}`],
+            [lang==='ko'?'📊 정확도':lang==='en'?'📊 Accuracy':lang==='zh'?'📊 准确率':'📊 Precisión',`${acc}%`],
+            [lang==='ko'?'📈 레벨':lang==='en'?'📈 Level':lang==='zh'?'📈 等级':'📈 Nivel',`Lv.${lvR.current+1}`],
+            [lang==='ko'?'🔥 콤보':lang==='en'?'🔥 Combo':lang==='zh'?'🔥 连击':'🔥 Combo',`${mcR.current}${lang==='ko'?'연속':lang==='zh'?'连':'x'}`],
+            [lang==='ko'?'📝 총':lang==='en'?'📝 Total':lang==='zh'?'📝 总计':'📝 Total',`${ttR.current}${lang==='ko'?'개':''}`],
+          ].map(([lb,v])=>(
+            <div key={lb} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,
+              background:'rgba(255,255,255,0.2)',borderRadius:13,padding:'10px 6px',animation:'popIn 0.4s ease-out'}}>
+              <span style={{color:'rgba(255,255,255,0.82)',fontSize:11,textAlign:'center',fontWeight:700}}>{lb}</span>
+              <span style={{color:'white',fontSize:20,fontWeight:900,fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{v}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:8,width:'100%',maxWidth:400}}>
+          {/* 공유하기 버튼 */}
+          <button onClick={()=>{
+            const lvName=lvLabel(lvR.current,lang);
+            const shareText={
+              ko:`🧮 수학 천재 게임\n\n👑 Lv.${lvR.current+1} ${lvName} 달성!
+${getPet(lvR.current+1).emoji} ${getPet(lvR.current+1).name.ko} 성장\n🎯 점수 ${score}점\n📊 정확도 ${acc}%\n🔥 최고 콤보 ${mcR.current}연속\n\n나도 도전해봐! 🚀`,
+              en:`🧮 Math Genius Game\n\n👑 Reached Lv.${lvR.current+1} ${lvName}!\n🎯 Score: ${score}\n📊 Accuracy: ${acc}%\n🔥 Best Combo: ${mcR.current}x\n\nCan you beat me? 🚀`,
+              zh:`🧮 数学天才游戏\n\n👑 达到Lv.${lvR.current+1} ${lvName}！\n🎯 得分：${score}分\n📊 正确率：${acc}%\n🔥 最高连击：${mcR.current}次\n\n来挑战我吧！🚀`,
+              es:`🧮 Juego Genio Matemático\n\n👑 ¡Alcancé Lv.${lvR.current+1} ${lvName}!\n🎯 Puntos: ${score}\n📊 Precisión: ${acc}%\n🔥 Combo máx: ${mcR.current}x\n\n¡Atrévete! 🚀`,
+            }[lang]||'';
+            // 모바일: 네이티브 공유 시트 / PC: 클립보드 복사
+            if(navigator.share){
+              navigator.share({title:'수학 천재 게임',text:shareText}).catch(()=>{});
+            }else{
+              navigator.clipboard.writeText(shareText).then(()=>{
+                alert(lang==='ko'?'📋 복사됐어요! 카카오톡·SNS에 붙여넣기 하세요 😊':
+                      lang==='en'?'📋 Copied! Paste it anywhere 😊':
+                      lang==='zh'?'📋 已复制！粘贴到任意地方 😊':
+                      '📋 ¡Copiado! Pégalo donde quieras 😊');
+              }).catch(()=>{
+                // 클립보드 안되면 텍스트 선택 방식
+                const el=document.createElement('textarea');
+                el.value=shareText;document.body.appendChild(el);
+                el.select();document.execCommand('copy');
+                document.body.removeChild(el);
+                alert(lang==='ko'?'📋 복사됐어요! 붙여넣기 하세요 😊':'📋 Copied!');
+              });
+            }
+          }} style={{background:'linear-gradient(135deg,#F59E0B,#EF4444)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(245,158,11,0.45)'}}>
+            {lang==='ko'?'🔗 결과 공유하기':lang==='en'?'🔗 Share Result':lang==='zh'?'🔗 分享成绩':'🔗 Compartir'}
+          </button>
+          <button onClick={()=>startGame(mode)} style={{background:'linear-gradient(135deg,#0EA5E9,#0284C7)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(14,165,233,0.4)'}}>{T.retry[lang]}</button>
+          <button onClick={goHome} style={{background:'linear-gradient(135deg,#22C55E,#16A34A)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(34,197,94,0.4)'}}>{T.goHome[lang]}</button>
+        </div>
+      </div>
+    );
   }
-  if(useImages)loadCardImages(cards,paint);else paint([]);
-})}
-function buildQuoteCanvas(){return new Promise(function(resolve){
-  var W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;var ctx=cv.getContext('2d');
-  var cards=drawn.map(function(d){return CARDS[d.idx]}),main=cards[0]||CARDS[0],q=rdData&&rdData.quote?rdData.quote:pickQuote(cards).q,qa=rdData&&rdData.quote_author?rdData.quote_author:pickQuote(cards).a,ad=rdData&&rdData.advice?rdData.advice:(rdData?rdData.action_today:'오늘의 감정을 하나만 기록해보세요.'),displayName=(user.name||'').trim();
-  var bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#1d0e39');bg.addColorStop(.5,'#090514');bg.addColorStop(1,'#030109');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-  drawGlow(ctx,220,160,280,'123,79,186',0.28);drawGlow(ctx,840,320,330,'201,168,76',0.14);drawStarField(ctx,W,H,180);
-  ctx.strokeStyle='rgba(201,168,76,.54)';ctx.lineWidth=3;ctx.strokeRect(36,36,W-72,H-72);ctx.strokeStyle='rgba(201,168,76,.22)';ctx.lineWidth=1;ctx.strokeRect(58,58,W-116,H-116);
-  drawOrnament(ctx,W,102);
-  ctx.textAlign='center';ctx.fillStyle='#F1DEA0';ctx.font='bold 42px Georgia';ctx.fillText('QUOTE CARD',W/2,150);
-  ctx.fillStyle='rgba(244,239,231,.76)';ctx.font='23px Georgia';ctx.fillText(displayName?'For '+displayName:getCatName()+' · '+getCardName(main),W/2,186);
 
-  panel(ctx,120,245,840,420,30,'rgba(255,255,255,.04)','rgba(232,210,138,.18)');
-  drawRichCard(ctx,main,390,280,300,480,null);
+  /* ── GAME ─────────────────────────────────────────────── */
+  if(!q)return null;
+  const mCfg=MODES[mode];
+  const numC=['#0369A1','#0F766E','#15803D','#C2410C','#7C3AED','#B91C1C'][Math.min(lv,5)];
+  const isInfLv=lv>5;  // 무한 레벨 여부
 
-  panel(ctx,96,760,888,430,30,'rgba(255,255,255,.055)','rgba(232,210,138,.2)');
-  ctx.textAlign='center';ctx.fillStyle='#C9A84C';ctx.font='bold 20px Georgia';ctx.fillText('TODAY QUOTE',W/2,812);
-  ctx.fillStyle='rgba(244,239,231,.96)';ctx.font='36px Georgia';drawTextBlock(ctx,'“'+q+'”',W/2,878,738,50,'center',4,'rgba(244,239,231,.96)');
-  ctx.fillStyle='rgba(232,210,138,.78)';ctx.font='23px Georgia';ctx.fillText('- '+qa,W/2,1078);
-  ctx.fillStyle='rgba(165,240,227,.95)';ctx.font='bold 20px Georgia';ctx.fillText('TODAY ADVICE',W/2,1134);
-  ctx.fillStyle='rgba(221,255,248,.94)';ctx.font='27px Georgia';drawTextBlock(ctx,ad,W/2,1182,760,38,'center',3,'rgba(221,255,248,.94)');
-  ctx.fillStyle='rgba(201,168,76,.58)';ctx.font='20px Georgia';ctx.fillText('Haji Mood · keep this feeling',W/2,H-78);
-  resolve(cv);
-})}
-function downloadCanvas(cv,filename,successMsg){
-  try{cv.toBlob(function(blob){if(!blob){toast('이미지 저장에 실패해 다시 생성합니다');return}var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},2000);toast(successMsg)},'image/png')}catch(e){throw e}
+  return(
+    <div style={{minHeight:'100vh',background:BG[bgKey],transition:'background 0.4s',
+      display:'flex',flexDirection:'column',alignItems:'center',
+      padding:'9px 12px 20px',fontFamily:"'Nunito',sans-serif",position:'relative',overflow:'hidden'}}>
+
+      {/* Stars */}
+      {stars.map(s=>(
+        <div key={s.id} style={{position:'fixed',left:`${s.x}%`,top:'30%',fontSize:s.sz,
+          animation:'starPop 1.1s ease-out forwards',pointerEvents:'none',zIndex:99}}>{s.ch}</div>
+      ))}
+      {/* Score float */}
+      {sAnim&&(
+        <div style={{position:'fixed',top:'20%',left:'50%',transform:'translateX(-50%)',
+          fontSize:34,fontWeight:900,color:'#FFD600',
+          animation:'scoreFloat 0.95s ease-out forwards',
+          pointerEvents:'none',zIndex:100,textShadow:'0 2px 10px rgba(0,0,0,0.4)',
+          whiteSpace:'nowrap',fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{sAnim}</div>
+      )}
+
+      {/* Nav bar */}
+      <div style={{width:'100%',maxWidth:490,display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:7}}>
+        <button onClick={goHome} style={{background:'rgba(255,255,255,0.24)',border:'none',borderRadius:16,padding:'6px 13px',color:'white',fontSize:12,fontWeight:900}}>🏠 {T.home[lang]}</button>
+        <div style={{background:'rgba(255,255,255,0.24)',borderRadius:16,padding:'6px 13px',fontSize:13,color:'white',fontWeight:900}}>{mCfg?.icon} {mCfg?.title[lang]||mCfg?.title.ko}</div>
+        <div style={{background:'rgba(255,255,255,0.24)',borderRadius:16,padding:'6px 13px',fontSize:13,color:'white',fontWeight:900}}>{LC[lang].flag}</div>
+      </div>
+
+      {/* Stats */}
+      <div style={{width:'100%',maxWidth:490,display:'grid',gridTemplateColumns:'1fr 1fr 1.2fr',gap:6,marginBottom:6}}>
+        <div style={{background:'rgba(255,255,255,0.22)',borderRadius:13,padding:'7px 8px',textAlign:'center'}}>
+          <div style={{color:'rgba(255,255,255,0.8)',fontSize:10,fontWeight:700}}>{T.score[lang]}</div>
+          <div style={{color:'white',fontSize:18,fontWeight:900,fontFamily:"'Fredoka One','Nunito',sans-serif"}}>{score}</div>
+        </div>
+        <div style={{background:'rgba(255,255,255,0.22)',borderRadius:13,padding:'7px 8px',textAlign:'center'}}>
+          <div style={{color:'rgba(255,255,255,0.8)',fontSize:10,fontWeight:700}}>{T.level[lang]}</div>
+          <div style={{color:isInfLv?'#FFD600':'white',fontSize:14,fontWeight:900}}>
+            {isInfLv?'👑 ':''}{lang==='ko'||lang==='zh'?'Lv.':'Lv.'}{lv+1}
+            <span style={{fontSize:10,opacity:0.85,marginLeft:3}}>{lvLabel(lv,lang)}</span>
+            {isInfLv&&<span style={{fontSize:9,display:'block',color:'#FFD600',opacity:0.9}}>⏰{getQTimer(mode,lv)}s</span>}
+          </div>
+        </div>
+        {mode==='time'?(
+          <div style={{background:'rgba(255,255,255,0.22)',borderRadius:13,padding:'7px 8px',textAlign:'center'}}>
+            <div style={{color:'rgba(255,255,255,0.8)',fontSize:10,fontWeight:700}}>{T.timeL[lang]}</div>
+            <div style={{color:timeLft<=10?'#FFD600':'white',fontSize:18,fontWeight:900,animation:timeLft<=10?'timerWarn 0.5s infinite':'none'}}>{T.secT(timeLft,lang)}</div>
+          </div>
+        ):(
+          <div style={{background:'rgba(255,255,255,0.22)',borderRadius:13,padding:'6px 5px',textAlign:'center',display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
+            <div style={{color:'rgba(255,255,255,0.8)',fontSize:10,fontWeight:700}}>{T.lives[lang]}</div>
+            <Hearts lives={lives} max={mCfg?.lives||5}/>
+          </div>
+        )}
+      </div>
+
+      {combo>=3&&(
+        <div style={{background:'rgba(255,214,0,0.22)',border:'2px solid #FFD600',borderRadius:16,
+          padding:'3px 14px',marginBottom:5,fontSize:14,fontWeight:900,color:'#FFD600',animation:'pulse 0.65s infinite'}}>
+          {T.comboT(combo,lang)} {combo>=10?'👑':combo>=5?'⚡':''}
+        </div>
+      )}
+
+      <div style={{width:'100%',maxWidth:490,marginBottom:7}}>
+        <PetCard pet={currentPet} lang={lang} compact={true} pulse={petPulse} combo={combo} score={score}/>
+      </div>
+
+      {/* Timer bar: right→left */}
+      <div style={{width:'100%',maxWidth:490,marginBottom:6}}>
+        <TimerBar val={qTime} max={qMax} lang={lang}/>
+      </div>
+
+      {/* Level progress */}
+      <div style={{width:'100%',maxWidth:490,marginBottom:8}}>
+        <div style={{background:'rgba(255,255,255,0.18)',borderRadius:20,height:7}}>
+          <div style={{background:'#FFD600',borderRadius:20,height:'100%',width:`${(corr%5)/5*100}%`,transition:'width 0.5s'}}/>
+        </div>
+        <div style={{color:'rgba(255,255,255,0.68)',fontSize:10,textAlign:'right',marginTop:2,fontWeight:700}}>{T.toLvUp(5-(corr%5),lang)}</div>
+      </div>
+
+      {lvAnim&&(
+        <div style={{background:'white',color:'#B45309',fontSize:15,fontWeight:900,padding:'8px 22px',
+          borderRadius:26,marginBottom:8,boxShadow:'0 4px 20px rgba(0,0,0,0.2)',
+          animation:'levelUp 0.5s ease-out',fontFamily:"'Fredoka One','Nunito',sans-serif",textAlign:'center'}}>
+          {T.lvUpMsg(lv+1,lvLabel(lv,lang),lang)}
+        </div>
+      )}
+
+      {/* Question card */}
+      <div style={{background:'rgba(255,255,255,0.18)',borderRadius:24,padding:'16px 16px',marginBottom:8,
+        width:'100%',maxWidth:490,textAlign:'center',
+        animation:shake?'shake 0.44s ease-out':'none',
+        border:'2px solid rgba(255,255,255,0.28)',backdropFilter:'blur(8px)'}}>
+        {mode==='listen'?(
+          /* 듣고 맞추기: 문제 절대 안 보여줌 — 귀로만 듣고 선택 */
+          <div style={{padding:'4px 0'}}>
+            <div style={{fontSize:60,animation:lstPh?'listenBeat 0.85s ease-in-out infinite':'none'}}>👂</div>
+            <p style={{color:'white',fontSize:14,fontWeight:900,marginTop:8}}>
+              {lstPh?T.listen[lang]:T.readV[lang]}
+            </p>
+            <button onClick={()=>{BGM.unlock();say(qSentence(q.a,q.op,q.b,lang),lang)}}
+              style={{background:'rgba(255,255,255,0.24)',border:'2px solid rgba(255,255,255,0.5)',borderRadius:16,padding:'6px 16px',color:'white',fontSize:12,fontWeight:900,marginTop:8}}>
+              🔊 {T.replay[lang]}
+            </button>
+          </div>
+        ):(
+          <>
+            <div style={{fontSize:10,color:'rgba(255,255,255,0.82)',marginBottom:8,fontWeight:700}}>🔊 {LC[lang].flag} {T.readV[lang]}</div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:7,marginBottom:10,flexWrap:'wrap'}}>
+              <NumBox val={String(q.a)} color={numC}/>
+              <OpBox op={q.op}/>
+              <NumBox val={String(q.b)} color={numC}/>
+              <span style={{fontSize:30,color:'rgba(255,255,255,0.88)',fontWeight:900,fontFamily:"'Fredoka One','Nunito',sans-serif"}}>=</span>
+              <div style={{width:58,height:60,background:'rgba(255,255,255,0.2)',borderRadius:16,
+                border:'3px dashed rgba(255,255,255,0.6)',display:'flex',alignItems:'center',justifyContent:'center',
+                fontSize:26,color:'rgba(255,255,255,0.8)'}}>?</div>
+            </div>
+            <button onClick={()=>{BGM.unlock();say(qSentence(q.a,q.op,q.b,lang),lang)}}
+              style={{background:'rgba(255,255,255,0.22)',border:'2px solid rgba(255,255,255,0.4)',borderRadius:16,padding:'5px 16px',color:'white',fontSize:11,fontWeight:800}}>
+              🔊 {T.replay[lang]}
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Answer buttons — 듣고맞추기: 음성 재생 중 비활성, 끝나면 활성 */}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:9,width:'100%',maxWidth:490}}>
+        {q.choices.map((c,i)=>{
+          let bg='rgba(255,255,255,0.94)',bd='3px solid rgba(255,255,255,0.7)',cl='#1e1b4b',sh='0 4px 14px rgba(0,0,0,0.13)';
+          if(selA!==null){
+            if(c===q.answer){bg='#16A34A';bd='3px solid #15803D';cl='white';sh='0 4px 18px rgba(22,163,74,0.5)';}
+            else if(c===selA){bg='#DC2626';bd='3px solid #B91C1C';cl='white';}
+            else{bg='rgba(255,255,255,0.36)';cl='rgba(255,255,255,0.45)';}
+          }
+          const isDisabled=lockd||(mode==='listen'&&lstPh);
+          const l2=String(c).length;
+          return(
+            <button key={i} onClick={()=>handleA(c)} disabled={isDisabled}
+              style={{background:bg,border:bd,borderRadius:18,padding:'15px 6px',
+                fontSize:l2>3?18:l2>2?24:30,fontWeight:900,color:cl,boxShadow:sh,
+                transition:'all 0.2s',fontFamily:"'Fredoka One','Nunito',sans-serif",minHeight:64,
+                opacity:isDisabled&&selA===null?0.45:1}}>
+              {c}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Feedback */}
+      {fbTy&&(
+        <div style={{marginTop:11,fontSize:18,fontWeight:900,color:'white',
+          textShadow:'0 2px 10px rgba(0,0,0,0.28)',textAlign:'center',animation:'fadeInUp 0.3s ease-out'}}>
+          {fbTx}
+          {fbTy==='w'&&selA!=='to'&&q&&(
+            <div style={{fontSize:13,marginTop:3,opacity:0.92}}>{T.wrongA(q.answer,lang)}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
-function buildKakaoCanvas(){return new Promise(function(resolve){
-  var W=1080,H=1080,cv=document.createElement('canvas');cv.width=W;cv.height=H;var ctx=cv.getContext('2d');
-  var cards=drawn.map(function(d){return CARDS[d.idx]}),main=cards[0]||CARDS[0],displayName=(user.name||'').trim(),q=rdData&&rdData.quote?rdData.quote:pickQuote(cards).q;
-  var bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#1d0f39');bg.addColorStop(.52,'#090514');bg.addColorStop(1,'#04020a');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-  drawGlow(ctx,160,180,260,'123,79,186',0.28);drawGlow(ctx,890,220,280,'201,168,76',0.12);drawStarField(ctx,W,H,150);
-  ctx.strokeStyle='rgba(201,168,76,.54)';ctx.lineWidth=3;ctx.strokeRect(34,34,W-68,H-68);ctx.strokeStyle='rgba(201,168,76,.18)';ctx.lineWidth=1;ctx.strokeRect(58,58,W-116,H-116);drawOrnament(ctx,W,90);
-  ctx.textAlign='center';ctx.fillStyle='#F1DEA0';ctx.font='bold 36px Georgia';ctx.fillText('HAJI MOOD CARD',W/2,136);
-  ctx.fillStyle='rgba(244,239,231,.74)';ctx.font='20px Georgia';ctx.fillText(displayName?'For '+displayName:getCatName(),W/2,168);
 
-  if(spreadN===1){
-    drawRichCard(ctx,main,86,220,320,512,null);
-  }else if(spreadN===3){
-    var cw=162,ch=260,gap=18,sx=72,sy=258;
-    cards.forEach(function(c,i){drawRichCard(ctx,c,sx+i*(cw+gap),sy,cw,ch,null)});
-  }else{
-    var cw=122,ch=195,gx=14,gy=14,sx=76,sy=238;
-    cards.forEach(function(c,i){var row=Math.floor(i/3),col=i%3;drawRichCard(ctx,c,sx+col*(cw+gx),sy+row*(ch+gy),cw,ch,null)});
-  }
-
-  var boxX=spreadN===1?452:86, boxY=spreadN===1?230:640, boxW=spreadN===1?540:908, boxH=spreadN===1?278:178;
-  panel(ctx,boxX,boxY,boxW,boxH,26,'rgba(255,255,255,.05)','rgba(232,210,138,.18)');
-  ctx.textAlign='left';ctx.fillStyle='#E9D792';ctx.font='bold 18px Georgia';ctx.fillText('KEY MESSAGE',boxX+34,boxY+42);
-  ctx.fillStyle='rgba(244,239,231,.96)';ctx.font='26px Georgia';drawTextBlock(ctx,rdData&&rdData.key_insight?rdData.key_insight:'오늘의 감정을 정리하는 카드입니다.',boxX+34,boxY+88,boxW-68,36,'left',spreadN===1?4:3,'rgba(244,239,231,.96)');
-
-  var actionX=spreadN===1?452:86, actionY=spreadN===1?534:840, actionW=spreadN===1?540:908, actionH=spreadN===1?196:116;
-  panel(ctx,actionX,actionY,actionW,actionH,24,'rgba(255,255,255,.04)','rgba(232,210,138,.18)');
-  ctx.fillStyle='#C9A84C';ctx.font='bold 18px Georgia';ctx.fillText('TODAY ACTION',actionX+34,actionY+40);
-  ctx.fillStyle='rgba(221,255,248,.94)';ctx.font='23px Georgia';drawTextBlock(ctx,rdData&&rdData.action_today?rdData.action_today:'오늘 작은 행동 하나를 정해보세요.',actionX+34,actionY+78,actionW-68,32,'left',spreadN===1?3:2,'rgba(221,255,248,.94)');
-
-  ctx.textAlign='center';ctx.fillStyle='rgba(244,239,231,.92)';ctx.font='25px Georgia';drawTextBlock(ctx,'“'+q+'”',W/2,990,790,34,'center',2,'rgba(244,239,231,.92)');
-  ctx.fillStyle='rgba(201,168,76,.6)';ctx.font='18px Georgia';ctx.fillText(LT('카카오톡용 정사각 포토카드','Square photo card for chat sharing','适合聊天分享的方形图卡'),W/2,H-36);
-  resolve(cv)
-})}
-function shareKakao(){if(!rdData){toast('심층 리포트 후 저장할 수 있어요');return}buildKakaoCanvas().then(function(cv){downloadCanvas(cv,'haji-mood-kakao-card-'+Date.now()+'.png','카카오톡용 포토카드가 저장됐어요')})}
-function shareImg(){if(!rdData){toast('심층 리포트 후 저장할 수 있어요');return}buildCanvas(true).then(function(cv){try{downloadCanvas(cv,'haji-mood-premium-card-'+Date.now()+'.png','프리미엄 포토카드가 저장됐어요')}catch(e){buildCanvas(false).then(function(cv2){downloadCanvas(cv2,'haji-mood-premium-card-'+Date.now()+'.png','프리미엄 포토카드가 저장됐어요')})}})}
-function shareText(){if(!rdData){toast('심층 리포트 후 명언 카드를 만들 수 있어요');return}buildQuoteCanvas().then(function(cv){downloadCanvas(cv,'haji-mood-quote-card-'+Date.now()+'.png','명언 조언 포토카드가 저장됐어요')})}
-document.querySelectorAll('.langbtn').forEach(function(b){b.onclick=function(){setLang(this.getAttribute('data-lang')||'KO')}});applyLang();
+const root=ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
 </script>
 </body>
 </html>
