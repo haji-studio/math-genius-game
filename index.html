@@ -430,11 +430,63 @@ function PetCard({pet,lang,compact=false,pulse=false,combo=0,score=0}){
   </div>);
 }
 
+// ── 관리자 패널: ?admin=Haji2025Math! 로 접근 ──
+const ADMIN_CODE='Haji2025Math!';
+const isAdmin=new URLSearchParams(window.location.search).get('admin')===ADMIN_CODE;
+
+// 잠금 설정 로드 (localStorage)
+const loadLocks=()=>{
+  try{return JSON.parse(localStorage.getItem('mathgame_locks')||'{}');}
+  catch(e){return {};}
+};
+const saveLocks=(locks)=>{
+  try{localStorage.setItem('mathgame_locks',JSON.stringify(locks));}catch(e){}
+};
+
+function AdminPanel({lang,onClose}){
+  const [locks,setLocks]=useState(loadLocks);
+  const toggle=(key)=>{
+    const next={...locks,[key]:!locks[key]};
+    setLocks(next);saveLocks(next);
+  };
+  const items=[
+    {key:'hard',label:'🔥 하드 모드 잠금'},
+    {key:'time',label:'👂⏱️ 타임 어택 잠금'},
+    {key:'listen',label:'👂 들어요! 수학 잠금'},
+  ];
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+      <div style={{background:'white',borderRadius:22,padding:22,width:'100%',maxWidth:360}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+          <span style={{fontSize:17,fontWeight:900,color:'#1e1b4b'}}>🔑 관리자 패널</span>
+          <button onClick={onClose} style={{background:'#f3f4f6',border:'none',borderRadius:10,padding:'6px 12px',fontSize:13,fontWeight:900,color:'#374151'}}>닫기 ✕</button>
+        </div>
+        <div style={{fontSize:12,color:'#6b7280',marginBottom:14}}>잠금 ON = 유료 / 잠금 OFF = 무료</div>
+        {items.map(({key,label})=>(
+          <div key={key} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 14px',background:'#f9fafb',borderRadius:12,marginBottom:8}}>
+            <span style={{fontSize:14,fontWeight:700,color:'#111827'}}>{label}</span>
+            <button onClick={()=>toggle(key)}
+              style={{background:locks[key]?'#EF4444':'#22C55E',border:'none',borderRadius:20,padding:'6px 16px',color:'white',fontSize:13,fontWeight:900,minWidth:70}}>
+              {locks[key]?'🔒 잠금':'🔓 무료'}
+            </button>
+          </div>
+        ))}
+        <div style={{marginTop:14,padding:'10px 14px',background:'#fef9c3',borderRadius:12,fontSize:12,color:'#92400e',lineHeight:1.6}}>
+          💡 잠금 설정은 이 기기에 저장돼요.<br/>
+          유료 전환 후 결제 연동은 별도 작업이 필요해요.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App(){
   const [scr,setScr]=useState('home');
   const [lang,setLang]=useState('ko');
   const [mode,setMode]=useState(null);
   const [bgmOn,setBgmOn]=useState(false);
+  const [showAdmin,setShowAdmin]=useState(false);
+  const [locks,setLocks]=useState(loadLocks);
   const [q,setQ]=useState(null);
   const [score,setScore]=useState(0);
   const [lives,setLives]=useState(5);
@@ -607,8 +659,10 @@ function App(){
         <div key={i} style={{position:'fixed',fontSize:d.s,...d.st,pointerEvents:'none',zIndex:0,filter:'drop-shadow(0 2px 6px rgba(0,0,0,0.15))'}}>{d.e}</div>
       ))}
       <div style={{position:'absolute',top:14,right:14,zIndex:10,display:'flex',gap:6}}>
+        {isAdmin&&<button onClick={()=>setShowAdmin(true)} style={{background:'rgba(0,0,0,0.4)',border:'2px solid rgba(255,255,255,0.5)',borderRadius:14,padding:'6px 10px',color:'white',fontSize:11,fontWeight:900,backdropFilter:'blur(6px)'}}>🔑 관리</button>}
         <button onPointerDown={()=>BGM.unlock()} onClick={toggleBGM} style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 12px',color:'white',fontSize:12,fontWeight:900,backdropFilter:'blur(6px)'}}>{bgmOn?'🎵 ON':'🔇 OFF'}</button>
       </div>
+      {showAdmin&&<AdminPanel lang={lang} onClose={()=>{setShowAdmin(false);setLocks(loadLocks());}}/>}
 
 
 
@@ -640,15 +694,17 @@ function App(){
         </div>
 
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,width:'100%',marginBottom:12}}>
-          {Object.values(MODES).map(m=>(
-            <button key={m.id} onClick={()=>{BGM.unlock();startGame(m.id);}}
-              style={{background:'rgba(255,255,255,0.22)',border:'2px solid rgba(255,255,255,0.45)',borderRadius:18,padding:'11px 10px 10px',color:'white',display:'flex',flexDirection:'column',alignItems:'flex-start',gap:3,textAlign:'left',position:'relative',overflow:'hidden',backdropFilter:'blur(8px)',boxShadow:'0 2px 12px rgba(0,0,0,0.08)'}}>
-              <span style={{position:'absolute',top:7,right:7,background:m.bc,borderRadius:7,padding:'2px 7px',fontSize:9,fontWeight:900,color:'white',lineHeight:1.4}}>{m.badge}</span>
+          {Object.values(MODES).map(m=>{
+            const locked=locks[m.id];
+            return(
+            <button key={m.id} onClick={()=>{if(locked){alert(lang==='ko'?'🔒 준비 중이에요! 곧 오픈돼요 😊':lang==='en'?'🔒 Coming soon!':lang==='zh'?'🔒 即将开放！':'🔒 ¡Próximamente!');return;}BGM.unlock();startGame(m.id);}}
+              style={{background:'rgba(255,255,255,0.22)',border:'2px solid rgba(255,255,255,0.45)',borderRadius:18,padding:'11px 10px 10px',color:'white',display:'flex',flexDirection:'column',alignItems:'flex-start',gap:3,textAlign:'left',position:'relative',overflow:'hidden',backdropFilter:'blur(8px)',boxShadow:'0 2px 12px rgba(0,0,0,0.08)',opacity:locked?0.7:1}}>
+              <span style={{position:'absolute',top:7,right:7,background:locked?'#6b7280':m.bc,borderRadius:7,padding:'2px 7px',fontSize:9,fontWeight:900,color:'white',lineHeight:1.4}}>{locked?'🔒 준비중':m.badge}</span>
               <span style={{fontSize:28,filter:'drop-shadow(0 2px 4px rgba(0,0,0,0.18))'}}>{m.icon}</span>
               <div style={{fontSize:15,fontWeight:900,fontFamily:"'Fredoka One','Nunito',sans-serif",lineHeight:1.1}}>{m.title[lang]||m.title.ko}</div>
               <div style={{fontSize:10.5,opacity:0.9,lineHeight:1.35,fontWeight:700}}>{m.desc[lang]||m.desc.ko}</div>
-            </button>
-          ))}
+            </button>);
+          })}
         </div>
         <p style={{color:'rgba(255,255,255,0.7)',fontSize:10.5,textAlign:'center',fontWeight:700}}>👂 들으면 풀려요 · 4가지 언어 · 무한 레벨</p>
       </div>
