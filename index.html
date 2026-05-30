@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>🌟 수학 천재 게임</title>
+<title>👂 들어요! 수학</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -367,10 +367,10 @@ const genQ=lv=>{
 };
 
 const MODES={
+  listen:{id:'listen',icon:'👂',title:{ko:'들어요! 수학',en:'Listen! Math',zh:'听音答题',es:'¡Escucha!'},lives:5,qt:Q_NORMAL,startLv:0,desc:{ko:'소리만 듣고 맞춰요! 진짜 수학 고수!',en:'Hear only! True math master!',zh:'只听声音答题！',es:'¡Solo escucha!'},badge:'NEW',bc:'#8B5CF6'},
   normal:{id:'normal',icon:'🌈',title:{ko:'보통 모드',en:'Normal',zh:'普通',es:'Normal'},lives:5,qt:Q_NORMAL,startLv:0,desc:{ko:'더하기 빼기 · 5번 기회',en:'Add & Subtract · 5 lives',zh:'加减法 · 5条命',es:'Suma/Resta · 5 vidas'},badge:'FREE',bc:'#22C55E'},
-  hard:{id:'hard',icon:'🔥',title:{ko:'하드 모드',en:'Hard',zh:'困难',es:'Difícil'},lives:3,qt:Q_HARD,startLv:3,desc:{ko:'곱하기 나누기 · 3번 기회',en:'Mult & Divide · 3 lives',zh:'乘除法 · 3条命',es:'Mult/Div · 3 vidas'},badge:'🔥도전',bc:'#EF4444'},
   time:{id:'time',icon:'⏱️',title:{ko:'타임 어택',en:'Time Attack',zh:'限时',es:'Contra Reloj'},lives:99,qt:Q_NORMAL,startLv:0,desc:{ko:'60초 안에 최대한!',en:'Max score in 60s!',zh:'60秒最高分！',es:'¡Máx en 60s!'},badge:'FREE',bc:'#3B82F6'},
-  listen:{id:'listen',icon:'👂',title:{ko:'듣고 맞추기',en:'Listen First',zh:'听音答题',es:'Escucha'},lives:5,qt:Q_NORMAL,startLv:0,desc:{ko:'소리 듣고 숫자 확인!',en:'Hear it, then see it!',zh:'先听后看！',es:'¡Escucha primero!'},badge:'NEW',bc:'#8B5CF6'},
+  hard:{id:'hard',icon:'🔥',title:{ko:'하드 모드',en:'Hard',zh:'困难',es:'Difícil'},lives:3,qt:Q_HARD,startLv:3,desc:{ko:'곱하기 나누기 · 3번 기회',en:'Mult & Divide · 3 lives',zh:'乘除法 · 3条命',es:'Mult/Div · 3 vidas'},badge:'🔥도전',bc:'#EF4444'},
 };
 const BG={sky:'linear-gradient(145deg,#22D3EE,#0EA5E9)',green:'linear-gradient(145deg,#4ADE80,#16A34A)',red:'linear-gradient(145deg,#F87171,#DC2626)',amber:'linear-gradient(145deg,#FCD34D,#F59E0B)'};
 const STARS_CHARS=['⭐','🌟','✨','💫','🎉','🌸'];
@@ -613,9 +613,9 @@ function App(){
 
       <div style={{zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',width:'100%',maxWidth:440}}>
         <div style={{fontSize:64,animation:'bounce 2s ease-in-out infinite',filter:'drop-shadow(0 5px 14px rgba(0,0,0,0.2))'}}>🧮</div>
-        <h1 style={{fontSize:'clamp(22px,6vw,32px)',fontWeight:900,color:'white',margin:'4px 0 2px',textShadow:'0 2px 14px rgba(0,0,0,0.28)',textAlign:'center',fontFamily:"'Fredoka One','Nunito',sans-serif",letterSpacing:0.5}}>수학 천재 게임</h1>
+        <h1 style={{fontSize:'clamp(22px,6vw,32px)',fontWeight:900,color:'white',margin:'4px 0 2px',textShadow:'0 2px 14px rgba(0,0,0,0.28)',textAlign:'center',fontFamily:"'Fredoka One','Nunito',sans-serif",letterSpacing:0.5}}>들어요! 수학</h1>
         <p style={{fontSize:13,color:'rgba(255,255,255,0.95)',margin:'0 0 14px',textAlign:'center',fontWeight:800}}>
-          {lang==='ko'?'🧠 즐겁게 배우는 수학 게임!':lang==='en'?'🧠 Learn Math the Fun Way!':lang==='zh'?'🧠 快乐学数学！':'🧠 ¡Aprende Matemáticas!'}
+          {lang==='ko'?'👂 귀로 배우면 더 잘 풀려요!':lang==='en'?'👂 Hear it, Solve it, Love it!':lang==='zh'?'👂 用耳朵学数学！':'👂 ¡Escucha y aprende!'}
         </p>
         {/* 저장된 펫 표시 */}
         <div style={{width:'100%',marginBottom:14}}>
@@ -649,7 +649,7 @@ function App(){
             </button>
           ))}
         </div>
-        <p style={{color:'rgba(255,255,255,0.7)',fontSize:10.5,textAlign:'center',fontWeight:700}}>🔊 음성 지원 · 4가지 언어 · 6단계 레벨</p>
+        <p style={{color:'rgba(255,255,255,0.7)',fontSize:10.5,textAlign:'center',fontWeight:700}}>👂 들으면 풀려요 · 4가지 언어 · 무한 레벨</p>
       </div>
     </div>
   );
@@ -700,7 +700,7 @@ function App(){
             ct.beginPath();ct.roundRect?ct.roundRect(30,24,W-60,H-48,28):ct.rect(30,24,W-60,H-48);ct.fill();
             ct.textAlign='center';
             ct.fillStyle='white';ct.font='bold 28px sans-serif';
-            ct.fillText('🧮 수학 천재 게임',W/2,72);
+            ct.fillText('👂 들어요! 수학',W/2,72);
             ct.font='110px serif';ct.fillText(pet.emoji,W/2,210);
             ct.font='bold 44px sans-serif';ct.fillStyle='#FFD700';
             ct.fillText(medal+' '+grade+' 등급',W/2,286);
