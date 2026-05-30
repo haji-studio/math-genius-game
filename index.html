@@ -684,18 +684,73 @@ function App(){
           ))}
         </div>
         <div style={{display:'flex',flexDirection:'column',gap:8,width:'100%',maxWidth:400}}>
-          <button onClick={()=>{
+          <button onClick={async()=>{
+            const pet=getPet(lvR.current+1);
+            const grade=getGrade(score,acc);
+            const medal=score>=900?'🥇':score>=400?'🥈':score>=100?'🥉':'🎖️';
             const lvName=lvLabel(lvR.current,lang);
-            const shareText={
-              ko:`🧮 수학 천재 게임\n\n👑 Lv.${lvR.current+1} ${lvName} 달성!\n${getPet(lvR.current+1).emoji} ${getPet(lvR.current+1).name.ko} 성장\n🎯 점수 ${score}점\n📊 정확도 ${acc}%\n🔥 최고 콤보 ${mcR.current}연속\n\n나도 도전해봐! 🚀`,
-              en:`🧮 Math Genius Game\n\n👑 Reached Lv.${lvR.current+1} ${lvName}!\n🎯 Score: ${score}\n📊 Accuracy: ${acc}%\n🔥 Best Combo: ${mcR.current}x\n\nCan you beat me? 🚀`,
-              zh:`🧮 数学天才游戏\n\n👑 达到Lv.${lvR.current+1} ${lvName}！\n🎯 得分：${score}分\n📊 正确率：${acc}%\n🔥 最高连击：${mcR.current}次\n\n来挑战我吧！🚀`,
-              es:`🧮 Juego Genio Matemático\n\n👑 ¡Alcancé Lv.${lvR.current+1} ${lvName}!\n🎯 Puntos: ${score}\n📊 Precisión: ${acc}%\n🔥 Combo máx: ${mcR.current}x\n\n¡Atrévete! 🚀`,
-            }[lang]||'';
-            if(navigator.share){navigator.share({title:'수학 천재 게임',text:shareText}).catch(()=>{});}
-            else{navigator.clipboard.writeText(shareText).then(()=>{alert(lang==='ko'?'📋 복사됐어요! 카카오톡·SNS에 붙여넣기 하세요 😊':lang==='en'?'📋 Copied! Paste it anywhere 😊':lang==='zh'?'📋 已复制！粘贴到任意地方 😊':'📋 ¡Copiado!');}).catch(()=>{const el=document.createElement('textarea');el.value=shareText;document.body.appendChild(el);el.select();document.execCommand('copy');document.body.removeChild(el);alert('📋 복사됐어요!');});}
+            const W=540,H=820;
+            const cv=document.createElement('canvas');
+            cv.width=W;cv.height=H;
+            const ct=cv.getContext('2d');
+            const g=ct.createLinearGradient(0,0,W,H);
+            g.addColorStop(0,'#FF7043');g.addColorStop(0.45,'#FFB300');g.addColorStop(1,'#2E7D32');
+            ct.fillStyle=g;ct.fillRect(0,0,W,H);
+            ct.fillStyle='rgba(255,255,255,0.15)';
+            ct.beginPath();ct.roundRect?ct.roundRect(30,24,W-60,H-48,28):ct.rect(30,24,W-60,H-48);ct.fill();
+            ct.textAlign='center';
+            ct.fillStyle='white';ct.font='bold 28px sans-serif';
+            ct.fillText('🧮 수학 천재 게임',W/2,72);
+            ct.font='110px serif';ct.fillText(pet.emoji,W/2,210);
+            ct.font='bold 44px sans-serif';ct.fillStyle='#FFD700';
+            ct.fillText(medal+' '+grade+' 등급',W/2,286);
+            ct.font='bold 26px sans-serif';ct.fillStyle='rgba(255,255,255,0.92)';
+            ct.fillText('👑 Lv.'+(lvR.current+1)+' '+lvName,W/2,334);
+            ct.strokeStyle='rgba(255,255,255,0.35)';ct.lineWidth=1.5;
+            ct.beginPath();ct.moveTo(60,358);ct.lineTo(W-60,358);ct.stroke();
+            const stats=[
+              ['🎯',lang==='ko'?'점수':lang==='en'?'Score':lang==='zh'?'得分':'Pts',score+(lang==='ko'?'점':'')],
+              ['📊',lang==='ko'?'정확도':lang==='en'?'Accuracy':lang==='zh'?'准确率':'Precisión',acc+'%'],
+              ['🔥',lang==='ko'?'최고콤보':lang==='en'?'Best Combo':lang==='zh'?'最高连击':'Combo',mcR.current+(lang==='ko'?'연속':lang==='zh'?'连':'x')],
+              ['📝',lang==='ko'?'총 문제':lang==='en'?'Total':lang==='zh'?'总计':'Total',ttR.current+(lang==='ko'?'개':'')],
+            ];
+            const cw=210,ch=110,gap=20,sx=60,sy=382;
+            stats.forEach(([ic,lb,val],i)=>{
+              const col=i%2,row=Math.floor(i/2);
+              const x=sx+col*(cw+gap),y=sy+row*(ch+gap);
+              ct.fillStyle='rgba(255,255,255,0.22)';
+              ct.beginPath();ct.roundRect?ct.roundRect(x,y,cw,ch,16):ct.rect(x,y,cw,ch);ct.fill();
+              ct.textAlign='center';
+              ct.font='22px serif';ct.fillStyle='white';ct.fillText(ic,x+cw/2,y+34);
+              ct.font='13px sans-serif';ct.fillStyle='rgba(255,255,255,0.78)';ct.fillText(lb,x+cw/2,y+56);
+              ct.font='bold 28px sans-serif';ct.fillStyle='white';ct.fillText(val,x+cw/2,y+92);
+            });
+            ct.textAlign='center';
+            ct.font='bold 20px sans-serif';ct.fillStyle='#FFF59D';
+            ct.fillText(pet.emoji+' '+(pet.name[lang]||pet.name.ko),W/2,654);
+            ct.font='15px sans-serif';ct.fillStyle='rgba(255,255,255,0.65)';
+            ct.fillText('haji-studio.github.io/math-genius-game',W/2,694);
+            ct.font='bold 21px sans-serif';ct.fillStyle='rgba(255,255,255,0.92)';
+            ct.fillText(lang==='ko'?'나도 도전해봐! 🚀':lang==='en'?'Can you beat me? 🚀':lang==='zh'?'来挑战我吧！🚀':'¡Atrévete! 🚀',W/2,742);
+            cv.toBlob(async(blob)=>{
+              const file=new File([blob],'math-genius-result.png',{type:'image/png'});
+              try{
+                if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+                  await navigator.share({files:[file],title:'수학 천재 게임'});
+                }else{
+                  const url=URL.createObjectURL(blob);
+                  const a=document.createElement('a');a.href=url;a.download='math-genius-result.png';a.click();
+                  setTimeout(()=>URL.revokeObjectURL(url),1000);
+                  alert(lang==='ko'?'📥 이미지 저장됐어요! 카카오톡에 첨부하세요 😊':lang==='en'?'📥 Image saved!':lang==='zh'?'📥 图片已保存！':'📥 ¡Imagen guardada!');
+                }
+              }catch(e){
+                const url=URL.createObjectURL(blob);
+                const a=document.createElement('a');a.href=url;a.download='math-genius-result.png';a.click();
+              }
+            },'image/png');
           }} style={{background:'linear-gradient(135deg,#F59E0B,#EF4444)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(245,158,11,0.45)'}}>
-            {lang==='ko'?'🔗 결과 공유하기':lang==='en'?'🔗 Share Result':lang==='zh'?'🔗 分享成绩':'🔗 Compartir'}
+            {lang==='ko'?'🖼️ 결과 이미지 공유':lang==='en'?'🖼️ Share Image':lang==='zh'?'🖼️ 分享图片':'🖼️ Compartir imagen'}
+          </button>
           </button>
           <button onClick={()=>startGame(mode)} style={{background:'linear-gradient(135deg,#0EA5E9,#0284C7)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(14,165,233,0.4)'}}>{T.retry[lang]}</button>
           <button onClick={goHome} style={{background:'linear-gradient(135deg,#22C55E,#16A34A)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(34,197,94,0.4)'}}>{T.goHome[lang]}</button>
