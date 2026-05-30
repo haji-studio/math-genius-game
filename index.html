@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>👂 들어요! 수학</title>
+<title>👂 들어요! 산수</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -368,7 +368,7 @@ const genQ=lv=>{
 };
 
 const MODES={
-  listen:{id:'listen',icon:'👂',title:{ko:'들어요! 수학',en:'Listen! Math',zh:'听音答题',es:'¡Escucha!'},lives:5,qt:Q_NORMAL,startLv:0,desc:{ko:'소리만 듣고 맞춰요! 진짜 수학 고수!',en:'Hear only! True math master!',zh:'只听声音答题！',es:'¡Solo escucha!'},badge:'NEW',bc:'#8B5CF6'},
+  listen:{id:'listen',icon:'👂',title:{ko:'들어요! 산수',en:'Listen! Math',zh:'听音答题',es:'¡Escucha!'},lives:5,qt:Q_NORMAL,startLv:0,desc:{ko:'소리만 듣고 맞춰요! 진짜 수학 고수!',en:'Hear only! True math master!',zh:'只听声音答题！',es:'¡Solo escucha!'},badge:'NEW',bc:'#8B5CF6'},
   normal:{id:'normal',icon:'🌈',title:{ko:'보통 모드',en:'Normal',zh:'普通',es:'Normal'},lives:5,qt:Q_NORMAL,startLv:0,desc:{ko:'숫자 보고 풀어요 · 5번 기회',en:'See numbers · 5 lives',zh:'看数字答题 · 5条命',es:'Ver números · 5 vidas'},badge:'FREE',bc:'#22C55E'},
   time:{id:'time',icon:'👂⏱️',title:{ko:'타임 어택',en:'Time Attack',zh:'限时',es:'Contra Reloj'},lives:99,qt:Q_NORMAL,startLv:0,desc:{ko:'들으면서 60초 도전!',en:'Listen & beat 60s!',zh:'听音60秒挑战！',es:'¡Escucha 60s!'},badge:'FREE',bc:'#3B82F6'},
   hard:{id:'hard',icon:'🔥',title:{ko:'하드 모드',en:'Hard',zh:'困难',es:'Difícil'},lives:3,qt:Q_HARD,startLv:3,desc:{ko:'숫자 보고 풀어요 · 3번 기회',en:'See numbers · 3 lives',zh:'看数字答题 · 3条命',es:'Ver números · 3 vidas'},badge:'🔥도전',bc:'#EF4444'},
@@ -410,9 +410,9 @@ function Hearts({lives,max}){
 const PETS=[
   {min:1,emoji:'🥚',name:{ko:'천재 알',en:'Genius Egg',zh:'天才蛋',es:'Huevo Genio'},msg:{ko:'막 깨어날 준비 중!',en:'Ready to hatch!',zh:'准备孵化！',es:'¡Listo para nacer!'}},
   {min:2,emoji:'🐣',name:{ko:'아기 병아리',en:'Baby Chick',zh:'小鸡',es:'Pollito'},msg:{ko:'정답을 먹고 자라요',en:'Grows with answers',zh:'靠答题成长',es:'Crece con aciertos'}},
-  {min:4,emoji:'🐱',name:{ko:'수학 고양이',en:'Math Cat',zh:'数学猫',es:'Gato Mate'},msg:{ko:'콤보를 좋아해요',en:'Loves combos',zh:'喜欢连击',es:'Ama combos'}},
+  {min:4,emoji:'🐱',name:{ko:'산수 고양이',en:'Math Cat',zh:'数学猫',es:'Gato Mate'},msg:{ko:'콤보를 좋아해요',en:'Loves combos',zh:'喜欢连击',es:'Ama combos'}},
   {min:7,emoji:'🦖',name:{ko:'공룡 박사',en:'Dino Doctor',zh:'恐龙博士',es:'Dino Doctor'},msg:{ko:'어려운 문제도 와앙!',en:'Crunches hard problems',zh:'难题也能吃掉',es:'Devora problemas'}},
-  {min:11,emoji:'🧙',name:{ko:'수학 마법사',en:'Math Wizard',zh:'数学魔法师',es:'Mago Mate'},msg:{ko:'숫자 마법 발동',en:'Number magic on',zh:'数字魔法启动',es:'Magia numérica'}},
+  {min:11,emoji:'🧙',name:{ko:'산수 마법사',en:'Math Wizard',zh:'数学魔法师',es:'Mago Mate'},msg:{ko:'숫자 마법 발동',en:'Number magic on',zh:'数字魔法启动',es:'Magia numérica'}},
   {min:16,emoji:'🚀',name:{ko:'우주 천재',en:'Cosmic Genius',zh:'宇宙天才',es:'Genio Cósmico'},msg:{ko:'은하계 계산왕',en:'Galaxy calculator',zh:'银河计算王',es:'Rey galáctico'}},
 ];
 const getPet=(lv)=>[...PETS].reverse().find(p=>lv>=p.min)||PETS[0];
@@ -452,7 +452,7 @@ function AdminPanel({lang,onClose}){
   const items=[
     {key:'hard',label:'🔥 하드 모드 잠금'},
     {key:'time',label:'👂⏱️ 타임 어택 잠금'},
-    {key:'listen',label:'👂 들어요! 수학 잠금'},
+    {key:'listen',label:'👂 들어요! 산수 잠금'},
   ];
   return(
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
@@ -668,7 +668,7 @@ function App(){
 
       <div style={{zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',width:'100%',maxWidth:440}}>
         <div style={{fontSize:64,animation:'bounce 2s ease-in-out infinite',filter:'drop-shadow(0 5px 14px rgba(0,0,0,0.2))'}}>🧮</div>
-        <h1 style={{fontSize:'clamp(22px,6vw,32px)',fontWeight:900,color:'white',margin:'4px 0 2px',textShadow:'0 2px 14px rgba(0,0,0,0.28)',textAlign:'center',fontFamily:"'Fredoka One','Nunito',sans-serif",letterSpacing:0.5}}>들어요! 수학</h1>
+        <h1 style={{fontSize:'clamp(22px,6vw,32px)',fontWeight:900,color:'white',margin:'4px 0 2px',textShadow:'0 2px 14px rgba(0,0,0,0.28)',textAlign:'center',fontFamily:"'Fredoka One','Nunito',sans-serif",letterSpacing:0.5}}>들어요! 산수</h1>
         <p style={{fontSize:13,color:'rgba(255,255,255,0.95)',margin:'0 0 14px',textAlign:'center',fontWeight:800}}>
           {lang==='ko'?'👂 귀로 배우면 더 잘 풀려요!':lang==='en'?'👂 Hear it, Solve it, Love it!':lang==='zh'?'👂 用耳朵学数学！':'👂 ¡Escucha y aprende!'}
         </p>
@@ -682,7 +682,7 @@ function App(){
           <div style={{display:'flex',gap:6}}>
             {Object.entries(LC).map(([k,v])=>{
               const sel=lang===k;
-              const testPhrases={ko:'안녕하세요! 수학 게임을 시작해요!',en:"Hello! Let's play math!",zh:'你好！我们来玩数学游戏吧！',es:'¡Hola! ¡Vamos a jugar matemáticas!'};
+              const testPhrases={ko:'안녕하세요! 산수 게임을 시작해요!',en:"Hello! Let's play math!",zh:'你好！我们来玩数学游戏吧！',es:'¡Hola! ¡Vamos a jugar matemáticas!'};
               return(<button key={k} onClick={()=>{BGM.unlock();setLang(k);lR.current=k;setTimeout(()=>say(testPhrases[k],k),100);}}
                 style={{flex:1,background:sel?'white':'rgba(255,255,255,0.22)',border:`2.5px solid ${sel?'#FFD600':'rgba(255,255,255,0.45)'}`,borderRadius:14,padding:'8px 3px',display:'flex',flexDirection:'column',alignItems:'center',gap:2,transition:'all 0.2s',boxShadow:sel?'0 0 0 3px rgba(255,214,0,0.45),0 4px 12px rgba(0,0,0,0.12)':'none',transform:sel?'scale(1.07)':'scale(1)'}}>
                 <span style={{fontSize:20}}>{v.flag}</span>
@@ -757,7 +757,7 @@ function App(){
             ct.beginPath();ct.roundRect?ct.roundRect(30,24,W-60,H-48,28):ct.rect(30,24,W-60,H-48);ct.fill();
             ct.textAlign='center';
             ct.fillStyle='white';ct.font='bold 28px sans-serif';
-            ct.fillText('👂 들어요! 수학',W/2,72);
+            ct.fillText('👂 들어요! 산수',W/2,72);
             ct.font='110px serif';ct.fillText(pet.emoji,W/2,210);
             ct.font='bold 44px sans-serif';ct.fillStyle='#FFD700';
             ct.fillText(medal+' '+grade+' 등급',W/2,286);
@@ -793,7 +793,7 @@ function App(){
               const file=new File([blob],'math-genius-result.png',{type:'image/png'});
               try{
                 if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-                  await navigator.share({files:[file],title:'수학 천재 게임'});
+                  await navigator.share({files:[file],title:'들어요 산수'});
                 }else{
                   const url=URL.createObjectURL(blob);
                   const a=document.createElement('a');a.href=url;a.download='math-genius-result.png';a.click();
