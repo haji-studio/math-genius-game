@@ -174,9 +174,6 @@ const BGM=(()=>{
   };
 })();
 
-const unlockAudioOnce=()=>{BGM.unlock();refreshVoices?.();};
-window.addEventListener('pointerdown',unlockAudioOnce,{once:true,passive:true});
-window.addEventListener('touchstart',unlockAudioOnce,{once:true,passive:true});
 
 const SFX=(()=>{
   let ctx=null,master=null;
@@ -287,6 +284,10 @@ const refreshVoices=()=>{
   if(vs&&vs.length)_voices=vs;
   return _voices;
 };
+const unlockAudioOnce=()=>{BGM.unlock();if(typeof refreshVoices==='function')refreshVoices();};
+window.addEventListener('pointerdown',unlockAudioOnce,{once:true,passive:true});
+window.addEventListener('touchstart',unlockAudioOnce,{once:true,passive:true});
+
 const waitVoices=()=>new Promise(resolve=>{
   const v=refreshVoices();if(v.length){resolve(v);return;}
   let done=false;
@@ -368,9 +369,9 @@ const genQ=lv=>{
 
 const MODES={
   listen:{id:'listen',icon:'👂',title:{ko:'들어요! 수학',en:'Listen! Math',zh:'听音答题',es:'¡Escucha!'},lives:5,qt:Q_NORMAL,startLv:0,desc:{ko:'소리만 듣고 맞춰요! 진짜 수학 고수!',en:'Hear only! True math master!',zh:'只听声音答题！',es:'¡Solo escucha!'},badge:'NEW',bc:'#8B5CF6'},
-  normal:{id:'normal',icon:'🌈',title:{ko:'보통 모드',en:'Normal',zh:'普通',es:'Normal'},lives:5,qt:Q_NORMAL,startLv:0,desc:{ko:'더하기 빼기 · 5번 기회',en:'Add & Subtract · 5 lives',zh:'加减法 · 5条命',es:'Suma/Resta · 5 vidas'},badge:'FREE',bc:'#22C55E'},
-  time:{id:'time',icon:'⏱️',title:{ko:'타임 어택',en:'Time Attack',zh:'限时',es:'Contra Reloj'},lives:99,qt:Q_NORMAL,startLv:0,desc:{ko:'60초 안에 최대한!',en:'Max score in 60s!',zh:'60秒最高分！',es:'¡Máx en 60s!'},badge:'FREE',bc:'#3B82F6'},
-  hard:{id:'hard',icon:'🔥',title:{ko:'하드 모드',en:'Hard',zh:'困难',es:'Difícil'},lives:3,qt:Q_HARD,startLv:3,desc:{ko:'곱하기 나누기 · 3번 기회',en:'Mult & Divide · 3 lives',zh:'乘除法 · 3条命',es:'Mult/Div · 3 vidas'},badge:'🔥도전',bc:'#EF4444'},
+  normal:{id:'normal',icon:'🌈',title:{ko:'보통 모드',en:'Normal',zh:'普通',es:'Normal'},lives:5,qt:Q_NORMAL,startLv:0,desc:{ko:'숫자 보고 풀어요 · 5번 기회',en:'See numbers · 5 lives',zh:'看数字答题 · 5条命',es:'Ver números · 5 vidas'},badge:'FREE',bc:'#22C55E'},
+  time:{id:'time',icon:'👂⏱️',title:{ko:'타임 어택',en:'Time Attack',zh:'限时',es:'Contra Reloj'},lives:99,qt:Q_NORMAL,startLv:0,desc:{ko:'들으면서 60초 도전!',en:'Listen & beat 60s!',zh:'听音60秒挑战！',es:'¡Escucha 60s!'},badge:'FREE',bc:'#3B82F6'},
+  hard:{id:'hard',icon:'🔥',title:{ko:'하드 모드',en:'Hard',zh:'困难',es:'Difícil'},lives:3,qt:Q_HARD,startLv:3,desc:{ko:'숫자 보고 풀어요 · 3번 기회',en:'See numbers · 3 lives',zh:'看数字答题 · 3条命',es:'Ver números · 3 vidas'},badge:'🔥도전',bc:'#EF4444'},
 };
 const BG={sky:'linear-gradient(145deg,#22D3EE,#0EA5E9)',green:'linear-gradient(145deg,#4ADE80,#16A34A)',red:'linear-gradient(145deg,#F87171,#DC2626)',amber:'linear-gradient(145deg,#FCD34D,#F59E0B)'};
 const STARS_CHARS=['⭐','🌟','✨','💫','🎉','🌸'];
@@ -504,7 +505,7 @@ function App(){
         if(qTR.current<=0){clearInterval(qT.current);handleTO();}
       },1000);
     };
-    if(mR.current==='listen'){
+    if(mR.current==='listen'||mR.current==='time'){
       setLstPh(true);
       setTimeout(()=>{
         const txt=qSentence(nq.a,nq.op,nq.b,lR.current);
@@ -751,7 +752,6 @@ function App(){
           }} style={{background:'linear-gradient(135deg,#F59E0B,#EF4444)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(245,158,11,0.45)'}}>
             {lang==='ko'?'🖼️ 결과 이미지 공유':lang==='en'?'🖼️ Share Image':lang==='zh'?'🖼️ 分享图片':'🖼️ Compartir imagen'}
           </button>
-          </button>
           <button onClick={()=>startGame(mode)} style={{background:'linear-gradient(135deg,#0EA5E9,#0284C7)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(14,165,233,0.4)'}}>{T.retry[lang]}</button>
           <button onClick={goHome} style={{background:'linear-gradient(135deg,#22C55E,#16A34A)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(34,197,94,0.4)'}}>{T.goHome[lang]}</button>
         </div>
@@ -813,7 +813,7 @@ function App(){
       </div>
       {lvAnim&&(<div style={{background:'white',color:'#B45309',fontSize:15,fontWeight:900,padding:'8px 22px',borderRadius:26,marginBottom:8,boxShadow:'0 4px 20px rgba(0,0,0,0.2)',animation:'levelUp 0.5s ease-out',fontFamily:"'Fredoka One','Nunito',sans-serif",textAlign:'center'}}>{T.lvUpMsg(lv+1,lvLabel(lv,lang),lang)}</div>)}
       <div style={{background:'rgba(255,255,255,0.18)',borderRadius:24,padding:'16px 16px',marginBottom:8,width:'100%',maxWidth:490,textAlign:'center',animation:shake?'shake 0.44s ease-out':'none',border:'2px solid rgba(255,255,255,0.28)',backdropFilter:'blur(8px)'}}>
-        {mode==='listen'?(
+        {(mode==='listen'||mode==='time')?(
           <div style={{padding:'4px 0'}}>
             <div style={{fontSize:60,animation:lstPh?'listenBeat 0.85s ease-in-out infinite':'none'}}>👂</div>
             <p style={{color:'white',fontSize:14,fontWeight:900,marginTop:8}}>{lstPh?T.listen[lang]:T.readV[lang]}</p>
@@ -841,7 +841,7 @@ function App(){
             else if(c===selA){bg='#DC2626';bd='3px solid #B91C1C';cl='white';}
             else{bg='rgba(255,255,255,0.36)';cl='rgba(255,255,255,0.45)';}
           }
-          const isDisabled=lockd||(mode==='listen'&&lstPh);
+          const isDisabled=lockd||((mode==='listen'||mode==='time')&&lstPh);
           const l2=String(c).length;
           return(<button key={i} onClick={()=>handleA(c)} disabled={isDisabled}
             style={{background:bg,border:bd,borderRadius:18,padding:'15px 6px',fontSize:l2>3?18:l2>2?24:30,fontWeight:900,color:cl,boxShadow:sh,transition:'all 0.2s',fontFamily:"'Fredoka One','Nunito',sans-serif",minHeight:64,opacity:isDisabled&&selA===null?0.45:1}}>
