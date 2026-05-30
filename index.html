@@ -434,7 +434,6 @@ function App(){
   const [lang,setLang]=useState('ko');
   const [mode,setMode]=useState(null);
   const [bgmOn,setBgmOn]=useState(false);
-  const [showDiag,setShowDiag]=useState(false);
   const [q,setQ]=useState(null);
   const [score,setScore]=useState(0);
   const [lives,setLives]=useState(5);
@@ -607,39 +606,10 @@ function App(){
         <div key={i} style={{position:'fixed',fontSize:d.s,...d.st,pointerEvents:'none',zIndex:0,filter:'drop-shadow(0 2px 6px rgba(0,0,0,0.15))'}}>{d.e}</div>
       ))}
       <div style={{position:'absolute',top:14,right:14,zIndex:10,display:'flex',gap:6}}>
-        <button onClick={()=>{BGM.unlock();refreshVoices();setShowDiag(true);}} style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 10px',color:'white',fontSize:11,fontWeight:900,backdropFilter:'blur(6px)'}}>🔍 음성</button>
         <button onPointerDown={()=>BGM.unlock()} onClick={toggleBGM} style={{background:'rgba(255,255,255,0.3)',border:'2px solid rgba(255,255,255,0.6)',borderRadius:14,padding:'6px 12px',color:'white',fontSize:12,fontWeight:900,backdropFilter:'blur(6px)'}}>{bgmOn?'🎵 ON':'🔇 OFF'}</button>
       </div>
 
-      {showDiag&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.65)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
-          <div style={{background:'white',borderRadius:22,padding:20,width:'100%',maxWidth:400,maxHeight:'85vh',overflowY:'auto'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-              <span style={{fontSize:17,fontWeight:900,color:'#1e1b4b'}}>🔍 음성 진단</span>
-              <button onClick={()=>setShowDiag(false)} style={{background:'#f3f4f6',border:'none',borderRadius:10,padding:'6px 12px',fontSize:13,fontWeight:900,color:'#374151'}}>닫기 ✕</button>
-            </div>
-            <div style={{background:'#dcfce7',borderRadius:12,padding:'10px 14px',marginBottom:10}}>
-              <div style={{fontSize:12,fontWeight:900,color:'#166534',marginBottom:3}}>Web Speech 음성 엔진</div>
-              <div style={{fontSize:13,fontWeight:700,color:'#15803d'}}>✅ 브라우저 기본 음성 사용 (안정적)</div>
-            </div>
-            <div style={{fontSize:12,fontWeight:900,color:'#374151',marginBottom:6}}>언어별 목소리</div>
-            {Object.entries(LC).map(([k,v])=>{
-              const voice=getVoice(v.vl);const ok=voice&&voice.lang.startsWith(v.vl.split('-')[0]);
-              return(<div key={k} style={{display:'flex',alignItems:'center',gap:8,background:'#f9fafb',borderRadius:10,padding:'8px 12px',marginBottom:6}}>
-                <span style={{fontSize:18}}>{v.flag}</span>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:12,fontWeight:700,color:'#111827'}}>{v.name}</div>
-                  <div style={{fontSize:11,color:ok?'#16a34a':'#dc2626'}}>{voice?`${voice.name} (${voice.lang})`:'목소리 없음'}</div>
-                </div>
-                <button onClick={()=>{BGM.unlock();say(k==='ko'?'안녕하세요 수학 게임입니다':k==='en'?'Hello, welcome to math game':k==='zh'?'你好，欢迎来玩数学游戏':'Hola, bienvenido al juego',k);}} style={{background:'#6366f1',border:'none',borderRadius:8,padding:'5px 10px',color:'white',fontSize:11,fontWeight:900}}>▶ 테스트</button>
-              </div>);
-            })}
-            <div style={{fontSize:11,color:'#6b7280',textAlign:'center',marginTop:8}}>목소리 {_voices.length}개 · 온라인: {navigator.onLine?'✅':'❌'}</div>
-            {/* 펫 저장 초기화 버튼 */}
-            <button onClick={()=>{try{localStorage.removeItem('mathgame_bestlv');}catch(e){}setBestLv(1);setShowDiag(false);}} style={{width:'100%',marginTop:12,background:'#fee2e2',border:'none',borderRadius:10,padding:'8px',fontSize:12,fontWeight:900,color:'#dc2626',cursor:'pointer'}}>🔄 펫 초기화</button>
-          </div>
-        </div>
-      )}
+
 
       <div style={{zIndex:1,display:'flex',flexDirection:'column',alignItems:'center',width:'100%',maxWidth:440}}>
         <div style={{fontSize:64,animation:'bounce 2s ease-in-out infinite',filter:'drop-shadow(0 5px 14px rgba(0,0,0,0.2))'}}>🧮</div>
