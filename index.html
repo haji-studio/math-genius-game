@@ -31,6 +31,12 @@ button:active{transform:scale(0.92)!important}
 @keyframes petDance{0%,100%{transform:translateY(0)rotate(-2deg)scale(1)}35%{transform:translateY(-12px)rotate(5deg)scale(1.08)}70%{transform:translateY(-4px)rotate(-5deg)scale(1.03)}}
 @keyframes sparkleRing{0%{opacity:0;transform:scale(0.55)}45%{opacity:1}100%{opacity:0;transform:scale(1.7)}}
 @keyframes resultGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(255,255,255,0.45))}50%{filter:drop-shadow(0 0 24px rgba(255,255,255,0.9))}}
+
+/* V4.29 mobile safe-area + touch polish */
+button{touch-action:manipulation}
+@media (max-width: 430px){
+  body{background:#19B9F2}
+}
 </style>
 </head>
 <body>
@@ -295,6 +301,28 @@ const T={
   gameEnd:{ko:'게임 종료! 🎉',en:'Game Over! 🎉',zh:'游戏结束！🎉',es:'¡Fin del juego! 🎉'},
   retry:{ko:'🔄 다시 도전!',en:'🔄 Try Again!',zh:'🔄 再来一次！',es:'🔄 ¡Otra vez!'},
   goHome:{ko:'🏠 홈으로',en:'🏠 Home',zh:'🏠 首页',es:'🏠 Inicio'},
+  close:{ko:'닫기',en:'Close',zh:'关闭',es:'Cerrar'},
+  start:{ko:'시작하기',en:'Start',zh:'开始',es:'Empezar'},
+  next:{ko:'다음',en:'Next',zh:'下一步',es:'Siguiente'},
+  done:{ko:'바로 시작',en:'Start now',zh:'马上开始',es:'Empezar'},
+  todayResult:{ko:'오늘의 학습 결과',en:'Today’s Study Result',zh:'今日学习结果',es:'Resultado de hoy'},
+  questions:{ko:'푼 문제',en:'Questions',zh:'题目数',es:'Preguntas'},
+  correct:{ko:'정답',en:'Correct',zh:'正确',es:'Aciertos'},
+  accuracy:{ko:'정확도',en:'Accuracy',zh:'正确率',es:'Precisión'},
+  bestCombo:{ko:'최고콤보',en:'Best Combo',zh:'最高连击',es:'Mejor combo'},
+  wrong:{ko:'틀린 문제',en:'Missed',zh:'错题',es:'Fallos'},
+  selectedLang:{ko:'선택 언어',en:'Language',zh:'选择语言',es:'Idioma'},
+  studyStreak:{ko:'연속 학습',en:'Study Streak',zh:'连续学习',es:'Racha'},
+  days:{ko:'일',en:'days',zh:'天',es:'días'},
+  reviewWrong:{ko:'틀린 문제 다시 듣기',en:'Review missed questions',zh:'再听错题',es:'Repasar fallos'},
+  startReview:{ko:'틀린 문제 다시 풀기',en:'Practice missed questions',zh:'练习错题',es:'Practicar fallos'},
+  noWrong:{ko:'복습할 틀린 문제가 아직 없어요!',en:'No missed questions to review yet!',zh:'还没有可复习的错题！',es:'Aún no hay fallos para repasar.'},
+  parentReport:{ko:'부모님 학습 리포트',en:'Parent Study Report',zh:'家长学习报告',es:'Informe para padres'},
+  hardestOp:{ko:'어려웠던 연산',en:'Hardest operation',zh:'较难的运算',es:'Operación difícil'},
+  recommend:{ko:'추천 복습',en:'Recommended review',zh:'推荐复习',es:'Repaso recomendado'},
+  shareReport:{ko:'📤 학습 리포트 공유',en:'📤 Share Report',zh:'📤 分享学习报告',es:'📤 Compartir informe'},
+  saveImage:{ko:'🖼️ 이미지 저장',en:'🖼️ Save Image',zh:'🖼️ 保存图片',es:'🖼️ Guardar imagen'},
+  otherLang:{ko:'🌐 다른 언어로 도전',en:'🌐 Try another language',zh:'🌐 换语言挑战',es:'🌐 Otro idioma'},
 };
 
 const UA=navigator.userAgent;
@@ -397,6 +425,7 @@ const MODES={
   normal:{id:'normal',icon:'🌈',title:{ko:'보통 모드',en:'Normal',zh:'普通',es:'Normal'},lives:5,qt:Q_NORMAL,startLv:0,desc:{ko:'숫자 보고 풀어요 · 5번 기회',en:'See numbers · 5 lives',zh:'看数字答题 · 5条命',es:'Ver números · 5 vidas'},badge:'FREE',bc:'#22C55E'},
   time:{id:'time',icon:'👂⏱️',title:{ko:'타임 어택',en:'Time Attack',zh:'限时',es:'Contra Reloj'},lives:99,qt:Q_NORMAL,startLv:0,desc:{ko:'들으면서 60초 도전!',en:'Listen & beat 60s!',zh:'听音60秒挑战！',es:'¡Escucha 60s!'},badge:'FREE',bc:'#3B82F6'},
   hard:{id:'hard',icon:'🔥',title:{ko:'하드 모드',en:'Hard',zh:'困难',es:'Difícil'},lives:3,qt:Q_HARD,startLv:3,desc:{ko:'숫자 보고 풀어요 · 3번 기회',en:'See numbers · 3 lives',zh:'看数字答题 · 3条命',es:'Ver números · 3 vidas'},badge:'🔥도전',bc:'#EF4444'},
+  review:{id:'review',icon:'🔁',title:{ko:'틀린 문제 복습',en:'Missed Review',zh:'错题复习',es:'Repaso de fallos'},lives:5,qt:Q_NORMAL,startLv:0,desc:{ko:'저장된 틀린 문제만 다시 들어요',en:'Only saved missed questions',zh:'只复习保存的错题',es:'Solo fallos guardados'},badge:'REVIEW',bc:'#0EA5E9',hidden:true},
 };
 const BG={sky:UI_BLUE,green:'linear-gradient(180deg,#1ECBEA 0%,#12A7E2 55%,#0B8ED6 100%)',red:'linear-gradient(180deg,#38BDF8 0%,#0EA5E9 55%,#2563EB 100%)',amber:'linear-gradient(180deg,#FCD34D,#F59E0B)'};
 const STARS_CHARS=['⭐','🌟','✨','💫','🎉','🌸'];
@@ -691,22 +720,145 @@ const saveStudyReport=(data)=>{
   try{
     const key=todayKey();
     const all=loadStudyReport();
-    const prev=all[key]||{total:0,correct:0,bestCombo:0,bestLevel:1,sessions:0,lastScore:0};
+    const prev=all[key]||{total:0,correct:0,wrong:0,bestCombo:0,bestLevel:1,sessions:0,lastScore:0,streak:1};
     all[key]={
       total:(prev.total||0)+(data.total||0),
       correct:(prev.correct||0)+(data.correct||0),
+      wrong:(prev.wrong||0)+(data.wrong||0),
       bestCombo:Math.max(prev.bestCombo||0,data.bestCombo||0),
       bestLevel:Math.max(prev.bestLevel||1,data.bestLevel||1),
       sessions:(prev.sessions||0)+1,
       lastScore:data.score||0,
       lastMode:data.mode||'',
       lastLang:data.lang||'ko',
+      lastAccuracy:data.total?Math.round(((data.correct||0)/(data.total||1))*100):0,
       updatedAt:new Date().toISOString()
     };
     localStorage.setItem('listen_math_study_report',JSON.stringify(all));
     return all[key];
   }catch(e){return null;}
 };
+
+const loadWrongQuestions=()=>{
+  try{return JSON.parse(localStorage.getItem('listen_math_wrong_questions')||'[]');}
+  catch(e){return [];}
+};
+const saveWrongQuestion=(item)=>{
+  try{
+    const list=loadWrongQuestions();
+    const next=[{...item,at:new Date().toISOString()},...list].slice(0,30);
+    localStorage.setItem('listen_math_wrong_questions',JSON.stringify(next));
+    return next;
+  }catch(e){return loadWrongQuestions();}
+};
+const clearWrongQuestions=()=>{
+  try{localStorage.removeItem('listen_math_wrong_questions');}catch(e){}
+};
+
+const makeChoicesAround=(ans)=>{
+  const s=new Set([ans]);let t=0;
+  while(s.size<4&&t<100){t++;const w=ans+(Math.floor(Math.random()*14)-7);if(w!==ans&&w>=0&&!s.has(w))s.add(w);}
+  while(s.size<4)s.add(ans+s.size*6+4);
+  return [...s].sort(()=>Math.random()-0.5);
+};
+const genReviewQ=()=>{
+  const list=loadWrongQuestions();
+  if(!list.length)return genQ(0);
+  const w=list[Math.floor(Math.random()*list.length)];
+  return {a:w.a,op:w.op,b:w.b,answer:w.answer,choices:makeChoicesAround(w.answer),review:true};
+};
+const getHardestOp=(list,lang)=>{
+  if(!list||!list.length)return {ko:'아직 없음',en:'Not yet',zh:'暂无',es:'Aún no'}[lang]||'아직 없음';
+  const map={};list.forEach(w=>{map[w.op]=(map[w.op]||0)+1;});
+  const op=Object.keys(map).sort((a,b)=>map[b]-map[a])[0]||'+';
+  return (OPW[lang]&&OPW[lang][op])||op;
+};
+const getReviewTip=(wrongCount,lang)=>{
+  if(wrongCount>0)return {ko:'틀린 문제 다시 풀기로 귀를 한 번 더 깨워주세요.',en:'Use missed review to wake up the listening skill once more.',zh:'用错题复习再练一次听力。',es:'Usa repaso de fallos para entrenar el oído otra vez.'}[lang];
+  return {ko:'오늘은 틀린 문제가 적어요. 다른 언어로 도전해보세요!',en:'Few misses today. Try another language!',zh:'今天错题很少，可以换个语言挑战！',es:'Pocos fallos hoy. ¡Prueba otro idioma!'}[lang];
+};
+
+const TUTORIAL_COPY={
+  ko:{title:'처음 10초 안내',skip:'건너뛰기',steps:[['👂','숫자를 들어요','문제를 눈으로 보지 않고 귀로 듣고 풀어요.'],['🌐','4개 언어로 연습해요','한국어, 영어, 중국어, 스페인어로 숫자와 계산을 들어요.'],['📊','기록을 확인해요','정답률, 최고 콤보, 틀린 문제를 저장해서 다시 볼 수 있어요.']]},
+  en:{title:'10-second guide',skip:'Skip',steps:[['👂','Listen to numbers','Solve by hearing the question, not just seeing it.'],['🌐','Practice in 4 languages','Hear numbers and math in Korean, English, Chinese, and Spanish.'],['📊','Check your record','Save accuracy, best combo, and missed questions for review.']]},
+  zh:{title:'10秒使用说明',skip:'跳过',steps:[['👂','听数字','不用只看题目，用耳朵听题并作答。'],['🌐','4种语言练习','用韩语、英语、中文、西班牙语听数字和计算。'],['📊','查看记录','保存正确率、最高连击和错题，方便复习。']]},
+  es:{title:'Guía de 10 segundos',skip:'Saltar',steps:[['👂','Escucha números','Resuelve escuchando la pregunta.'],['🌐','Practica 4 idiomas','Escucha números y cálculo en coreano, inglés, chino y español.'],['📊','Mira tu progreso','Guarda precisión, combo máximo y fallos para repasar.']]}
+};
+const RESULT_COPY={
+  ko:{tipGood:'오늘은 귀와 숫자가 같이 반짝였어요!',tipTry:'괜찮아요. 틀린 문제를 다시 들으면 더 빨라져요!',emptyWrong:'아직 저장된 틀린 문제가 없어요.'},
+  en:{tipGood:'Your ears and numbers sparkled today!',tipTry:'Nice try. Review missed questions and you’ll get faster!',emptyWrong:'No missed questions saved yet.'},
+  zh:{tipGood:'今天耳朵和数字一起发光了！',tipTry:'没关系。再听错题会更快！',emptyWrong:'还没有保存的错题。'},
+  es:{tipGood:'¡Tus oídos y números brillaron hoy!',tipTry:'Buen intento. Repasa los fallos y serás más rápido.',emptyWrong:'Aún no hay fallos guardados.'}
+};
+
+const POPUP_COPY={
+  ko:{
+    languageHint:'먼저 언어를 고르면 안내도 그 언어로 바뀌어요.',
+    chooseLang:'언어 선택',
+    copied:'학습 리포트가 복사됐어요. 카카오톡이나 문자에 붙여넣어 주세요!',
+    shareTitle:'들어요 산수 학습 리포트',
+    comingSoon:'준비 중이에요! 곧 오픈돼요 😊',
+    copiedFallback:'아래 리포트를 복사해서 공유해 주세요.'
+  },
+  en:{
+    languageHint:'Choose a language first. This guide will change with it.',
+    chooseLang:'Choose language',
+    copied:'Study report copied. Paste it into a message to share!',
+    shareTitle:'Listen Math Study Report',
+    comingSoon:'Coming soon! 😊',
+    copiedFallback:'Copy the report below to share it.'
+  },
+  zh:{
+    languageHint:'请先选择语言，说明也会切换成该语言。',
+    chooseLang:'选择语言',
+    copied:'学习报告已复制。可以粘贴到聊天或短信中分享！',
+    shareTitle:'听数学学习报告',
+    comingSoon:'准备中，很快开放 😊',
+    copiedFallback:'请复制下面的报告并分享。'
+  },
+  es:{
+    languageHint:'Elige un idioma primero. La guía cambiará a ese idioma.',
+    chooseLang:'Elegir idioma',
+    copied:'Informe copiado. Pégalo en un mensaje para compartirlo.',
+    shareTitle:'Informe de Escucha Matemática',
+    comingSoon:'¡Próximamente! 😊',
+    copiedFallback:'Copia el informe de abajo para compartirlo.'
+  }
+};
+const pc=(lang,key)=>((POPUP_COPY[lang]||POPUP_COPY.ko)[key]||POPUP_COPY.ko[key]);
+
+
+function TutorialOverlay({lang,onDone,onLangChange}){
+  const copy=TUTORIAL_COPY[lang]||TUTORIAL_COPY.ko;
+  const [step,setStep]=React.useState(0);
+  const data=copy.steps[step]||copy.steps[0];
+  const finish=()=>{try{localStorage.setItem('listen_math_tutorial_seen_v429','1');}catch(e){};onDone&&onDone();};
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(2,34,78,.72)',zIndex:998,display:'flex',alignItems:'center',justifyContent:'center',padding:18,backdropFilter:'blur(7px)'}}>
+      <div style={{width:'100%',maxWidth:390,background:'white',borderRadius:32,padding:22,boxShadow:'0 28px 70px rgba(0,0,0,.28)',border:'5px solid #FFD21E',textAlign:'center'}}>
+        <div style={{fontSize:15,fontWeight:900,color:'#0A77B8',marginBottom:6}}>V4.29 · {copy.title}</div>
+        <div style={{fontSize:12,fontWeight:900,color:'#64748B',lineHeight:1.35,marginBottom:10}}>{pc(lang,'languageHint')}</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:7,margin:'0 0 12px'}}>
+          {Object.entries(LC).map(([k,v])=>{
+            const selected=k===lang;
+            return <button key={k} onClick={()=>{onLangChange&&onLangChange(k);setStep(0);}} style={{border:selected?'3px solid #FFD21E':'2px solid #E2E8F0',background:selected?'#FFF8D6':'#F8FAFC',borderRadius:14,padding:'7px 4px',fontWeight:900,color:selected?'#06457E':'#475569',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+              <span style={{width:30,height:30,borderRadius:'50%',overflow:'hidden',display:'block'}}><AppIconFlag code={k} size={'100%'}/></span>
+              <span style={{fontSize:10,whiteSpace:'nowrap'}}>{FLAG_NAME_COPY[lang]?.[k]||v.name}</span>
+            </button>
+          })}
+        </div>
+        <div style={{fontSize:56,margin:'6px 0 10px'}}>{data[0]}</div>
+        <div style={{fontSize:25,fontWeight:900,color:'#06457E',lineHeight:1.1}}>{data[1]}</div>
+        <div style={{fontSize:15,fontWeight:800,color:'#47657B',lineHeight:1.55,marginTop:10,minHeight:48}}>{data[2]}</div>
+        <div style={{display:'flex',justifyContent:'center',gap:7,margin:'18px 0 16px'}}>{copy.steps.map((_,i)=><span key={i} style={{width:i===step?24:9,height:9,borderRadius:99,background:i===step?'#0EA5E9':'#CBD5E1',transition:'all .2s'}}/> )}</div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1.35fr',gap:10}}>
+          <button onClick={finish} style={{border:'none',borderRadius:18,padding:'13px 10px',fontWeight:900,fontSize:15,color:'#475569',background:'#F1F5F9'}}>{copy.skip}</button>
+          <button onClick={()=>step<copy.steps.length-1?setStep(step+1):finish()} style={{border:'none',borderRadius:18,padding:'13px 10px',fontWeight:900,fontSize:16,color:'#073B75',background:'linear-gradient(135deg,#FFD21E,#FFB000)',boxShadow:'0 8px 18px rgba(255,176,0,.30)'}}>{step<copy.steps.length-1?T.next[lang]:T.done[lang]}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function App(){
   const [scr,setScr]=useState('home');
@@ -740,6 +892,8 @@ function App(){
   const [bestLv,setBestLv]=useState(()=>{try{return parseInt(localStorage.getItem('mathgame_bestlv')||'1');}catch(e){return 1;}});
   const [studyReport,setStudyReport]=useState(()=>loadStudyReport()[todayKey()]||null);
   const [shareOpen,setShareOpen]=useState(false);
+  const [showTutorial,setShowTutorial]=useState(()=>{try{return localStorage.getItem('listen_math_tutorial_seen_v429')!=='1';}catch(e){return true;}});
+  const [wrongList,setWrongList]=useState(()=>loadWrongQuestions());
 
   const gT=useRef(null),qT=useRef(null),lsT=useRef(null);
   const qTR=useRef(Q_NORMAL),lvR=useRef(0),livR=useRef(5),mR=useRef(null),lR=useRef('ko');
@@ -760,6 +914,7 @@ function App(){
         correct:crR.current,
         bestCombo:mcR.current,
         bestLevel:lvR.current+1,
+        wrong:Math.max(0,ttR.current-crR.current),
         score:scR.current,
         mode:mR.current,
         lang:lR.current
@@ -780,7 +935,7 @@ function App(){
     setFbTy('wrong');setFbTx(rnd(PH.wUI,lR.current));
     say(rnd(PH.to,lR.current),lR.current);
     SFX.wrong();setBgKey('red');setShake(true);setTimeout(()=>setShake(false),520);
-    cbR.current=0;setCombo(0);ttR.current++;setTot(ttR.current);
+    cbR.current=0;setCombo(0);ttR.current++;setTot(ttR.current);recordWrong('timeout');
     if(mR.current!=='time'){
       livR.current--;setLives(livR.current);
       if(livR.current<=0){setTimeout(()=>{say(rnd(PH.over,lR.current),lR.current);setScr('result');},1800);return;}
@@ -790,7 +945,7 @@ function App(){
 
   const next=useCallback(lvidx=>{
     clearTimeout(lsT.current);
-    const nq=genQ(lvidx);qR.current=nq;
+    const nq=(mR.current==='review')?genReviewQ():genQ(lvidx);qR.current=nq;
     const qt=getQTimer(mR.current,lvidx);
     setQ(nq);setSelA(null);setFbTy(null);setFbTx('');
     setLockd(false);lkR.current=false;
@@ -801,7 +956,7 @@ function App(){
         if(qTR.current<=0){clearInterval(qT.current);handleTO();}
       },1000);
     };
-    if(mR.current==='listen'||mR.current==='time'){
+    if(mR.current==='listen'||mR.current==='time'||mR.current==='review'){
       setLstPh(true);
       setTimeout(()=>{
         const txt=qSentence(nq.a,nq.op,nq.b,lR.current);
@@ -820,6 +975,7 @@ function App(){
 
   const startGame=m=>{
     clearInterval(gT.current);stopQ();clearTimeout(lsT.current);
+    if(m==='review'&&!loadWrongQuestions().length){alert(T.noWrong[lang]);return;}
     const mc=MODES[m];
     mR.current=m;lvR.current=mc.startLv;livR.current=mc.lives;
     scR.current=0;crR.current=0;ttR.current=0;cbR.current=0;mcR.current=0;lkR.current=false;
@@ -861,6 +1017,14 @@ function App(){
       setBgKey('green');spawnS();SFX.correct();setPetPulse(true);setTimeout(()=>setPetPulse(false),850);
       if(nc>=3)SFX.combo();
       say(`${c}! ${rnd(PH.cSpeak,lR.current)}`,lR.current);
+      if(mR.current==='review'){
+        try{
+          const cur=qR.current;
+          const nextWrong=loadWrongQuestions().filter(w=>!(w.a===cur.a&&w.op===cur.op&&w.b===cur.b&&w.answer===cur.answer));
+          localStorage.setItem('listen_math_wrong_questions',JSON.stringify(nextWrong));
+          setWrongList(nextWrong);
+        }catch(e){}
+      }
       let nlv=lvR.current;
       if(crR.current%5===0){
         nlv++;lvR.current=nlv;setLv(nlv);setLvAnim(true);
@@ -882,6 +1046,7 @@ function App(){
       cbR.current=0;setCombo(0);
       setFbTy('w');setFbTx(rnd(PH.wUI,lR.current));
       say(rnd(PH.wSpeak,lR.current),lR.current);
+      recordWrong(c);
       if(mR.current!=='time'){
         livR.current--;setLives(livR.current);
         if(livR.current<=0){setTimeout(()=>{say(rnd(PH.over,lR.current),lR.current);setScr('result');},1800);return;}
@@ -892,32 +1057,40 @@ function App(){
 
   const goHome=()=>{clearInterval(gT.current);stopQ();clearTimeout(lsT.current);BGM.stop();setBgmOn(false);setScr('home');};
   const toggleBGM=async()=>{const n=!bgmOn;setBgmOn(n);await BGM.toggle(n);};
+  const recordWrong=(chosen)=>{
+    const w=qR.current;if(!w)return;
+    const next=saveWrongQuestion({a:w.a,op:w.op,b:w.b,answer:w.answer,chosen,mode:mR.current||mode,lang:lR.current});
+    setWrongList(next);
+  };
   const makeShareText=()=>{
     const r=studyReport||{total:ttR.current,correct:crR.current,bestCombo:mcR.current,bestLevel:lvR.current+1,lastScore:score};
     const rate=r.total?Math.round((r.correct/r.total)*100):acc;
-    return `오늘도 들어요 산수 완료 🎉
-오늘 푼 문제 ${r.total||ttR.current}개
-정답 ${r.correct||crR.current}개
-정답률 ${rate}%
-최고 콤보 ${r.bestCombo||mcR.current}
-최고 레벨 Lv.${r.bestLevel||lvR.current+1}
-점수 ${score}점
-
-#들어요산수 #수학게임 #학습리포트`;
+    const total=r.total||ttR.current;
+    const correct=r.correct||crR.current;
+    const bestCombo=r.bestCombo||mcR.current;
+    const bestLevel=r.bestLevel||lvR.current+1;
+    const scoreVal=score||r.lastScore||0;
+    const lines={
+      ko:[`오늘도 들어요 산수 완료 🎉`,`오늘 푼 문제 ${total}개`,`정답 ${correct}개`,`정답률 ${rate}%`,`최고 콤보 ${bestCombo}`,`최고 레벨 Lv.${bestLevel}`,`점수 ${scoreVal}점`,'','#들어요산수 #수학게임 #학습리포트'],
+      en:[`Listen Math completed today 🎉`,`Questions solved: ${total}`,`Correct: ${correct}`,`Accuracy: ${rate}%`,`Best combo: ${bestCombo}`,`Best level: Lv.${bestLevel}`,`Score: ${scoreVal}`,'','#ListenMath #MathGame #StudyReport'],
+      zh:[`今天也完成了听数学 🎉`,`答题数：${total}`,`正确：${correct}`,`正确率：${rate}%`,`最高连击：${bestCombo}`,`最高等级：Lv.${bestLevel}`,`得分：${scoreVal}`,'','#听数学 #数学游戏 #学习报告'],
+      es:[`Escucha Matemática completada 🎉`,`Preguntas: ${total}`,`Aciertos: ${correct}`,`Precisión: ${rate}%`,`Mejor combo: ${bestCombo}`,`Nivel máximo: Lv.${bestLevel}`,`Puntos: ${scoreVal}`,'','#EscuchaMatemática #JuegoDeMate #Informe']
+    };
+    return (lines[lang]||lines.ko).join('\n');
   };
   const shareReport=async()=>{
     const text=makeShareText();
     try{
       if(navigator.share){
-        await navigator.share({title:'들어요 산수 학습 리포트',text});
+        await navigator.share({title:pc(lang,'shareTitle'),text});
       }else{
         await navigator.clipboard.writeText(text);
-        alert('학습 리포트가 복사됐어요. 카카오톡이나 문자에 붙여넣어 주세요!');
+        alert(pc(lang,'copied'))
       }
     }catch(e){
       try{
         await navigator.clipboard.writeText(text);
-        alert('학습 리포트가 복사됐어요. 카카오톡이나 문자에 붙여넣어 주세요!');
+        alert(pc(lang,'copied'))
       }catch(err){
         alert(text);
       }
@@ -1011,6 +1184,7 @@ function App(){
         <button onPointerDown={()=>BGM.unlock()} onClick={toggleBGM} style={{background:'rgba(0,80,150,0.34)',border:'2px solid rgba(255,255,255,0.55)',borderRadius:18,padding:'7px 12px',color:'white',fontSize:12,fontWeight:900,backdropFilter:'blur(8px)'}}>{bgmOn?(lang==='ko'?'음악 ON':lang==='en'?'Music ON':lang==='zh'?'音乐 ON':'Música ON'):(lang==='ko'?'음악 OFF':lang==='en'?'Music OFF':lang==='zh'?'音乐 OFF':'Música OFF')}</button>
       </div>
       {showAdmin&&<AdminPanel lang={lang} onClose={()=>{setShowAdmin(false);setLocks(loadLocks());}}/>}
+      {showTutorial&&<TutorialOverlay lang={lang} onLangChange={(k)=>{setLang(k);lR.current=k;}} onDone={()=>setShowTutorial(false)}/> }
       <div style={{zIndex:1,width:'100%',maxWidth:520,display:'flex',flexDirection:'column',alignItems:'center'}}>
         <div style={{width:'100%',display:'flex',flexDirection:'column',alignItems:'center',paddingTop:4}}>
           <AppLogo lang={lang}/>
@@ -1040,17 +1214,24 @@ function App(){
               <span style={{fontSize:'clamp(12px,3.2vw,15px)',color:'rgba(7,59,117,.78)'}}>{(HOME_COPY[lang]||HOME_COPY.ko).startDesc}</span>
             </span>
           </button>
+          {studyReport&&(
+            <div style={{width:'100%',display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,margin:'-6px 0 16px'}}>
+              <div style={{background:'rgba(255,255,255,.28)',border:'2px solid rgba(255,255,255,.5)',borderRadius:18,padding:'9px 6px',textAlign:'center',color:'white',fontWeight:900}}><div style={{fontSize:11,opacity:.86}}>{T.questions[lang]}</div><div style={{fontSize:18}}>{studyReport.total||0}</div></div>
+              <div style={{background:'rgba(255,255,255,.28)',border:'2px solid rgba(255,255,255,.5)',borderRadius:18,padding:'9px 6px',textAlign:'center',color:'white',fontWeight:900}}><div style={{fontSize:11,opacity:.86}}>{T.accuracy[lang]}</div><div style={{fontSize:18}}>{studyReport.total?Math.round((studyReport.correct/studyReport.total)*100):0}%</div></div>
+              <div style={{background:'rgba(255,255,255,.28)',border:'2px solid rgba(255,255,255,.5)',borderRadius:18,padding:'9px 6px',textAlign:'center',color:'white',fontWeight:900}}><div style={{fontSize:11,opacity:.86}}>{T.bestCombo[lang]}</div><div style={{fontSize:18}}>{studyReport.bestCombo||0}</div></div>
+            </div>
+          )}
         </div>
         <div style={{width:'100%',display:'flex',alignItems:'center',justifyContent:'space-between',margin:'2px 0 10px'}}>
           <div style={{fontSize:18,fontWeight:900,color:'white',textShadow:'0 3px 7px rgba(0,66,120,.55)'}}>🎮 {(HOME_COPY[lang]||HOME_COPY.ko).modeTitle}</div>
           <div style={{fontSize:12,fontWeight:900,color:'rgba(255,255,255,.82)'}}>{(HOME_COPY[lang]||HOME_COPY.ko).modeCount}</div>
         </div>
         <div style={{width:'100%',display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginTop:2}}>
-          {Object.values(MODES).map((m,idx)=>{
+          {Object.values(MODES).filter(m=>!m.hidden).map((m,idx)=>{
             const locked=locks[m.id];
             const emoji={listen:getPet(bestLv).emoji,normal:'🌈',time:'⏱️',hard:'🔥'}[m.id]||m.icon;
             const grad={listen:'linear-gradient(135deg,#FFD21E,#FF9F1C)',normal:'linear-gradient(135deg,#35D07F,#0EBE8B)',time:'linear-gradient(135deg,#3BA7FF,#1677FF)',hard:'linear-gradient(135deg,#FF6B6B,#FF3B73)'}[m.id];
-            return <button key={m.id} onClick={()=>{if(locked){alert(lang==='ko'?'준비 중이에요! 곧 오픈돼요 😊':lang==='en'?'Coming soon!':lang==='zh'?'即将开放！':'¡Próximamente!');return;}BGM.unlock();startGame(m.id);}}
+            return <button key={m.id} onClick={()=>{if(locked){alert(pc(lang,'comingSoon'));return;}BGM.unlock();startGame(m.id);}}
               style={{position:'relative',minHeight:124,borderRadius:26,border:'4px solid rgba(255,255,255,.95)',background:UI_CARD,boxShadow:'0 14px 26px rgba(0,80,150,.18)',padding:'16px 15px',textAlign:'left',overflow:'hidden',opacity:locked?.72:1}}>
               <div style={{position:'absolute',right:12,top:10,background:locked?'#64748B':m.bc,borderRadius:999,padding:'4px 10px',color:'white',fontSize:11,fontWeight:900}}>{locked?(HOME_COPY[lang]||HOME_COPY.ko).comingSoon:m.badge}</div>
               <div style={{width:50,height:50,borderRadius:17,background:grad,display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,boxShadow:'0 8px 18px rgba(0,0,0,.13)',marginBottom:12}}>{emoji}</div>
@@ -1073,7 +1254,7 @@ function App(){
           <div style={{fontSize:40,filter:'drop-shadow(0 4px 8px rgba(0,0,0,.18))'}}>{getPet(bestLv).emoji}</div>
           <div style={{fontSize:13,lineHeight:1.45}}>{(APP_COPY[lang]||APP_COPY.ko).intro}<br/><span style={{opacity:.9}}>{getPet(bestLv).name[lang]||getPet(bestLv).name.ko}</span></div>
         </div>
-        <div style={{marginTop:8,fontSize:11,fontWeight:900,color:'rgba(255,255,255,.72)'}}>v4.25 beta</div>
+        <div style={{marginTop:8,fontSize:11,fontWeight:900,color:'rgba(255,255,255,.72)'}}>v4.29 mobile beta</div>
       </div>
     </div>
   );
@@ -1083,7 +1264,7 @@ function App(){
     const praise=score>=900?{ko:'완전 천재! 대박이에요!',en:'Pure genius! Amazing!',zh:'真天才！太厉害了！',es:'¡Genio total! ¡Increíble!'}:score>=400?{ko:'정말 잘했어요! 멋져요!',en:'Great job! You rock!',zh:'非常好！真棒！',es:'¡Muy bien! ¡Excelente!'}:{ko:'잘했어요! 다시 도전해봐요!',en:'Good try! Play again!',zh:'加油！再来一次！',es:'¡Buen intento! ¡Otra vez!'};
     const medal=score>=900?'🥇':score>=400?'🥈':score>=100?'🥉':'🎖️';
     return(
-      <div style={{minHeight:'100vh',background:UI_BLUE,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'22px 16px',fontFamily:"'Nunito',sans-serif",position:'relative',overflow:'hidden'}}>
+      <div style={{minHeight:'100vh',background:UI_BLUE,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'max(16px, env(safe-area-inset-top)) 14px max(22px, env(safe-area-inset-bottom))',fontFamily:"'Nunito',sans-serif",position:'relative',overflow:'hidden'}}>
         <div style={{position:'absolute',width:280,height:280,borderRadius:'50%',background:'rgba(255,255,255,.14)',right:-110,bottom:-80}}/>
         <div style={{position:'absolute',width:190,height:190,borderRadius:'50%',background:'rgba(255,255,255,.13)',left:-70,top:-45}}/>
         <div style={{width:'100%',maxWidth:440,zIndex:1,display:'flex',flexDirection:'column',alignItems:'center'}}>
@@ -1094,7 +1275,7 @@ function App(){
           <div style={{width:'100%',background:UI_CARD,border:'4px solid rgba(255,255,255,.9)',borderRadius:32,padding:16,boxShadow:'0 18px 34px rgba(0,80,150,.2)',marginBottom:16}}>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
               {[
-                ['점수',`${score}${lang==='ko'?'점':''}`,'⭐'],['정답',`${crR.current}${lang==='ko'?'개':''}`,'✅'],['정확도',`${acc}%`,'📊'],['레벨',`Lv.${lvR.current+1}`,'🏆'],['최고콤보',`${mcR.current}${lang==='ko'?'연속':lang==='zh'?'连':'x'}`,'🔥'],['총 문제',`${ttR.current}${lang==='ko'?'개':''}`,'📝'],
+                [T.score[lang],`${score}${lang==='ko'?'점':''}`,'⭐'],[T.correct[lang],`${crR.current}${lang==='ko'?'개':''}`,'✅'],[T.accuracy[lang],`${acc}%`,'📊'],[T.level[lang],`Lv.${lvR.current+1}`,'🏆'],[T.bestCombo[lang],`${mcR.current}${lang==='ko'?'연속':lang==='zh'?'连':'x'}`,'🔥'],[T.questions[lang],`${ttR.current}${lang==='ko'?'개':''}`,'📝'],
               ].map(([lb,v,ic])=>(
                 <div key={lb} style={{background:'linear-gradient(180deg,#F7FBFF,#EAF7FF)',borderRadius:20,padding:'13px 8px',textAlign:'center',border:'2px solid #D8F0FF'}}>
                   <div style={{fontSize:22}}>{ic}</div>
@@ -1104,9 +1285,35 @@ function App(){
               ))}
             </div>
           </div>
+          <div style={{width:'100%',background:'rgba(255,255,255,.94)',border:'3px solid #D8F0FF',borderRadius:26,padding:14,boxShadow:'0 12px 24px rgba(0,80,150,.14)',margin:'0 0 14px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,marginBottom:10}}>
+              <div style={{fontSize:17,fontWeight:900,color:'#06457E'}}>📊 {T.todayResult[lang]}</div>
+              <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12,fontWeight:900,color:'#47708C'}}><FlagIcon code={lang} size={24}/>{(FLAG_NAME_COPY[lang]&&FLAG_NAME_COPY[lang][lang])||LC[lang]?.name}</div>
+            </div>
+            <div style={{fontSize:14,fontWeight:900,color:acc>=70?'#0F766E':'#C2410C',lineHeight:1.45,marginBottom:10}}>{acc>=70?(RESULT_COPY[lang]||RESULT_COPY.ko).tipGood:(RESULT_COPY[lang]||RESULT_COPY.ko).tipTry}</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+              <div style={{background:'#F7FBFF',borderRadius:16,padding:'10px 8px',textAlign:'center'}}><div style={{fontSize:11,fontWeight:900,color:'#64748B'}}>{T.wrong[lang]}</div><div style={{fontSize:19,fontWeight:900,color:'#06457E'}}>{Math.max(0,ttR.current-crR.current)}</div></div>
+              <div style={{background:'#FFF8D7',borderRadius:16,padding:'10px 8px',textAlign:'center'}}><div style={{fontSize:11,fontWeight:900,color:'#64748B'}}>{T.studyStreak[lang]}</div><div style={{fontSize:19,fontWeight:900,color:'#06457E'}}>{studyReport?.sessions||1} {T.days[lang]}</div></div>
+              <div style={{background:'#F0FDF4',borderRadius:16,padding:'10px 8px',textAlign:'center'}}><div style={{fontSize:11,fontWeight:900,color:'#64748B'}}>{T.hardestOp[lang]}</div><div style={{fontSize:17,fontWeight:900,color:'#06457E'}}>{getHardestOp(wrongList,lang)}</div></div>
+              <div style={{background:'#EFF6FF',borderRadius:16,padding:'10px 8px',textAlign:'center'}}><div style={{fontSize:11,fontWeight:900,color:'#64748B'}}>{T.recommend[lang]}</div><div style={{fontSize:13,fontWeight:900,color:'#06457E',lineHeight:1.25}}>{getReviewTip(Math.max(0,ttR.current-crR.current),lang)}</div></div>
+            </div>
+            <div style={{marginTop:10,background:'#F8FAFC',borderRadius:16,padding:10}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,marginBottom:6}}>
+                <div style={{fontSize:13,fontWeight:900,color:'#06457E'}}>👂 {T.reviewWrong[lang]}</div>
+                {wrongList.length>0&&<button onClick={()=>startGame('review')} style={{border:'none',borderRadius:999,background:'#0EA5E9',color:'white',fontSize:11,fontWeight:900,padding:'6px 10px'}}>{T.startReview[lang]}</button>}
+              </div>
+              {wrongList.length?wrongList.slice(0,3).map((w,i)=>(
+                <button key={i} onClick={()=>say(qSentence(w.a,w.op,w.b,lang),lang)} style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',border:'none',background:'white',borderRadius:12,padding:'8px 10px',marginTop:6,fontWeight:900,color:'#334155',boxShadow:'0 4px 10px rgba(15,23,42,.06)'}}>
+                  <span>{w.a} {w.op} {w.b} = ?</span><span style={{color:'#0EA5E9'}}>🔊</span>
+                </button>
+              )):<div style={{fontSize:12,fontWeight:800,color:'#64748B'}}>{(RESULT_COPY[lang]||RESULT_COPY.ko).emptyWrong}</div>}
+            </div>
+          </div>
           <div style={{display:'flex',flexDirection:'column',gap:10,width:'100%'}}>
-            <button onClick={()=>setShareOpen(true)} style={{background:'linear-gradient(135deg,#7C3AED,#5B21B6)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(124,58,237,0.4)'}}>📤 학습 리포트 공유</button>
-          <button onClick={()=>startGame(mode)} style={{background:'linear-gradient(135deg,#FFD21E,#FF9F1C)',border:'4px solid white',borderRadius:24,padding:17,fontSize:21,fontWeight:900,color:'#06457E',boxShadow:'0 12px 22px rgba(0,80,150,.2)'}}>{T.retry[lang]}</button>
+            <button onClick={()=>setShareOpen(true)} style={{background:'linear-gradient(135deg,#7C3AED,#5B21B6)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(124,58,237,0.4)'}}>{T.shareReport[lang]}</button>
+          <button onClick={saveReportImage} style={{background:'linear-gradient(135deg,#0EA5E9,#2563EB)',border:'none',borderRadius:15,padding:14,fontSize:16,fontWeight:900,color:'white',boxShadow:'0 4px 18px rgba(14,165,233,0.35)'}}>{T.saveImage[lang]}</button>
+            <button onClick={()=>startGame(mode)} style={{background:'linear-gradient(135deg,#FFD21E,#FF9F1C)',border:'4px solid white',borderRadius:24,padding:17,fontSize:21,fontWeight:900,color:'#06457E',boxShadow:'0 12px 22px rgba(0,80,150,.2)'}}>{T.retry[lang]}</button>
+            <button onClick={()=>{setScr('home');}} style={{background:'white',border:'4px solid #BFEAFF',borderRadius:24,padding:15,fontSize:18,fontWeight:900,color:'#06457E',boxShadow:'0 10px 20px rgba(0,80,150,.16)'}}>{T.otherLang[lang]}</button>
             <button onClick={goHome} style={{background:'white',border:'4px solid #BFEAFF',borderRadius:24,padding:15,fontSize:18,fontWeight:900,color:'#06457E',boxShadow:'0 10px 20px rgba(0,80,150,.16)'}}>{T.goHome[lang]}</button>
           </div>
         </div>
@@ -1120,7 +1327,7 @@ function App(){
   const isInfLv=lv>5;
 
   return(
-    <div style={{minHeight:'100vh',background:BG[bgKey],transition:'background 0.4s',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 12px 18px',fontFamily:"'Nunito',sans-serif",position:'relative',overflow:'hidden'}}>
+    <div style={{minHeight:'100vh',background:BG[bgKey],transition:'background 0.4s',display:'flex',flexDirection:'column',alignItems:'center',padding:'max(10px, env(safe-area-inset-top)) 12px max(18px, env(safe-area-inset-bottom))',fontFamily:"'Nunito',sans-serif",position:'relative',overflow:'hidden'}}>
       <div style={{position:'fixed',inset:0,pointerEvents:'none',overflow:'hidden',zIndex:0}}>
         <div style={{position:'absolute',width:230,height:230,borderRadius:'50%',background:'rgba(255,255,255,.13)',right:-90,bottom:40}}/>
         <div style={{position:'absolute',width:150,height:150,borderRadius:'50%',background:'rgba(255,255,255,.11)',left:-55,top:-40}}/>
@@ -1154,11 +1361,11 @@ function App(){
         {combo>=3&&(<div style={{background:'#FFD21E',border:'3px solid white',borderRadius:18,padding:'5px 14px',margin:'0 auto 9px',fontSize:15,fontWeight:900,color:'#06457E',width:'fit-content',animation:'pulse 0.65s infinite',boxShadow:'0 8px 18px rgba(0,80,150,.18)'}}>{T.comboT(combo,lang)} {combo>=10?'👑':combo>=5?'⚡':''}</div>)}
         {lvAnim&&(<div style={{background:'white',color:'#06457E',fontSize:16,fontWeight:900,padding:'10px 20px',borderRadius:26,margin:'0 auto 10px',boxShadow:'0 10px 24px rgba(0,80,150,.22)',animation:'levelUp 0.5s ease-out',textAlign:'center',border:'4px solid #FFD21E',width:'fit-content'}}>{T.lvUpMsg(lv+1,lvLabel(lv,lang),lang)}</div>)}
         <div style={{background:'rgba(255,255,255,.96)',borderRadius:34,padding:'18px 16px',marginBottom:12,width:'100%',textAlign:'center',animation:shake?'shake 0.44s ease-out':'none',border:'4px solid rgba(255,255,255,.98)',boxShadow:'0 18px 34px rgba(0,80,150,.20)'}}>
-          {(mode==='listen'||mode==='time')?(
+          {(mode==='listen'||mode==='time'||mode==='review')?(
             <div style={{padding:'4px 0'}}>
               <PetBubble pet={currentPet} pulse={lstPh} large={true}/>
               <p style={{color:'#06457E',fontSize:20,fontWeight:900,marginTop:2}}>{lstPh?T.listen[lang]:T.readV[lang]}</p>
-              <button onClick={()=>{BGM.unlock();say(qSentence(q.a,q.op,q.b,lang),lang);}} style={{background:'linear-gradient(135deg,#3BA7FF,#1677FF)',border:'3px solid white',borderRadius:20,padding:'9px 18px',color:'white',fontSize:14,fontWeight:900,marginTop:10,boxShadow:'0 8px 18px rgba(0,80,150,.18)'}}>🔊 {T.replay[lang]}</button>
+              <button onClick={()=>{BGM.unlock();say(qSentence(q.a,q.op,q.b,lang),lang);}} style={{background:'linear-gradient(135deg,#3BA7FF,#1677FF)',border:'3px solid white',borderRadius:24,padding:'15px 26px',minHeight:56,minWidth:'72%',color:'white',fontSize:19,fontWeight:900,marginTop:12,boxShadow:'0 8px 18px rgba(0,80,150,.18)'}}>🔊 {T.replay[lang]}</button>
             </div>
           ):(
             <>
@@ -1168,7 +1375,7 @@ function App(){
                 <span style={{fontSize:34,color:'#06457E',fontWeight:900}}>=</span>
                 <div style={{width:64,height:64,background:'#EAF7FF',borderRadius:18,border:'4px dashed #8AD8FF',display:'flex',alignItems:'center',justifyContent:'center',fontSize:32,color:'#0A77B8',fontWeight:900}}>?</div>
               </div>
-              <button onClick={()=>{BGM.unlock();say(qSentence(q.a,q.op,q.b,lang),lang);}} style={{background:'linear-gradient(135deg,#3BA7FF,#1677FF)',border:'3px solid white',borderRadius:20,padding:'8px 17px',color:'white',fontSize:13,fontWeight:900}}>🔊 {T.replay[lang]}</button>
+              <button onClick={()=>{BGM.unlock();say(qSentence(q.a,q.op,q.b,lang),lang);}} style={{background:'linear-gradient(135deg,#3BA7FF,#1677FF)',border:'3px solid white',borderRadius:24,padding:'14px 24px',minHeight:54,minWidth:'68%',color:'white',fontSize:18,fontWeight:900}}>🔊 {T.replay[lang]}</button>
             </>
           )}
         </div>
@@ -1180,7 +1387,7 @@ function App(){
               else if(c===selA){bg='linear-gradient(180deg,#FF6B6B,#EF4444)';bd='4px solid #FFFFFF';cl='white';}
               else{bg='rgba(255,255,255,.55)';cl='rgba(6,69,126,.45)';}
             }
-            const isDisabled=lockd||((mode==='listen'||mode==='time')&&lstPh);
+            const isDisabled=lockd||((mode==='listen'||mode==='time'||mode==='review')&&lstPh);
             const l2=String(c).length;
             return(<button key={i} onClick={()=>handleA(c)} disabled={isDisabled} style={{background:bg,border:bd,borderRadius:24,padding:'18px 6px',fontSize:l2>3?22:l2>2?28:36,fontWeight:900,color:cl,boxShadow:sh,transition:'all 0.2s',minHeight:82,opacity:isDisabled&&selA===null?0.45:1,textShadow:'0 2px 4px rgba(0,0,0,.16)'}}>{c}</button>);
           })}
