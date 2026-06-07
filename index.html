@@ -425,10 +425,10 @@ function TimerBar({val,max,lang}){
   </div>);
 }
 function Hearts({lives,max}){
-  const sz=max>=5?17:22;
-  return(<div style={{display:'flex',gap:2,flexWrap:'wrap',justifyContent:'center'}}>
+  const sz=max>=5?'clamp(15px,4.4vw,19px)':'clamp(18px,5vw,22px)';
+  return(<div style={{display:'flex',gap:'clamp(1px,0.7vw,4px)',flexWrap:'nowrap',justifyContent:'center',alignItems:'center',width:'100%',whiteSpace:'nowrap',lineHeight:1,overflow:'hidden'}}>
     {Array.from({length:max}).map((_,i)=>(
-      <span key={i} style={{fontSize:sz,filter:i<lives?'none':'grayscale(1)',opacity:i<lives?1:0.2,transition:'all 0.3s'}}>❤️</span>
+      <span key={i} style={{fontSize:sz,display:'inline-flex',alignItems:'center',justifyContent:'center',lineHeight:1,filter:i<lives?'none':'grayscale(1)',opacity:i<lives?1:0.2,transition:'all 0.3s'}}>❤️</span>
     ))}
   </div>);
 }
@@ -621,7 +621,7 @@ function AppLogo({lang,small=false}){
 
 function PetBubble({pet,pulse=false,large=false}){
   return(
-    <div style={{width:large?120:74,height:large?120:74,borderRadius:large?32:24,background:'rgba(255,255,255,.96)',border:'4px solid #FFD21E',display:'flex',alignItems:'center',justifyContent:'center',fontSize:large?70:44,boxShadow:'0 8px 16px rgba(0,80,150,.18)',animation:pulse?'petDance .8s ease-out':'floatB 4s ease-in-out infinite'}}>
+    <div style={{width:large?'clamp(88px,25vw,120px)':'clamp(54px,16vw,74px)',height:large?'clamp(88px,25vw,120px)':'clamp(54px,16vw,74px)',borderRadius:large?'clamp(22px,7vw,32px)':'clamp(18px,5vw,24px)',background:'rgba(255,255,255,.96)',border:'4px solid #FFD21E',display:'flex',alignItems:'center',justifyContent:'center',fontSize:large?'clamp(48px,15vw,70px)':'clamp(32px,10vw,44px)',boxShadow:'0 8px 16px rgba(0,80,150,.18)',animation:pulse?'petDance .8s ease-out':'floatB 4s ease-in-out infinite'}}>
       {pet.emoji}
     </div>
   );
@@ -1127,10 +1127,10 @@ function App(){
           <button onClick={goHome} style={{background:'rgba(255,255,255,.92)',border:'3px solid rgba(255,255,255,.98)',borderRadius:18,padding:'8px 12px',color:'#06457E',fontSize:13,fontWeight:900,boxShadow:'0 6px 14px rgba(0,80,150,.15)'}}>← {T.home[lang]}</button>
           <div style={{display:'flex',alignItems:'center',gap:8,background:'rgba(255,255,255,.92)',borderRadius:20,padding:'7px 12px',fontSize:13,color:'#06457E',fontWeight:900,boxShadow:'0 6px 14px rgba(0,80,150,.15)'}}><FlagIcon code={lang} size={24}/><span>{mCfg?.title[lang]||mCfg?.title.ko}</span></div>
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1.15fr',gap:8,marginBottom:10}}>
-          <div style={{background:'rgba(255,255,255,.92)',borderRadius:20,padding:'10px 8px',textAlign:'center',boxShadow:'0 8px 18px rgba(0,80,150,.12)'}}><div style={{fontSize:11,fontWeight:900,color:'#47708C'}}>{T.score[lang]}</div><div style={{fontSize:20,fontWeight:900,color:'#06457E'}}>⭐ {score}</div></div>
-          <div style={{background:'rgba(255,255,255,.92)',borderRadius:20,padding:'10px 8px',textAlign:'center',boxShadow:'0 8px 18px rgba(0,80,150,.12)'}}><div style={{fontSize:11,fontWeight:900,color:'#47708C'}}>{T.level[lang]}</div><div style={{fontSize:18,fontWeight:900,color:'#06457E'}}>Lv.{lv+1}</div></div>
-          {mode==='time'?(<div style={{background:'rgba(255,255,255,.92)',borderRadius:20,padding:'10px 8px',textAlign:'center',boxShadow:'0 8px 18px rgba(0,80,150,.12)'}}><div style={{fontSize:11,fontWeight:900,color:'#47708C'}}>{T.timeL[lang]}</div><div style={{fontSize:20,fontWeight:900,color:timeLft<=10?'#FF3B73':'#06457E'}}>{T.secT(timeLft,lang)}</div></div>):(<div style={{background:'rgba(255,255,255,.92)',borderRadius:20,padding:'9px 6px',textAlign:'center',boxShadow:'0 8px 18px rgba(0,80,150,.12)'}}><div style={{fontSize:11,fontWeight:900,color:'#47708C'}}>{T.lives[lang]}</div><Hearts lives={lives} max={mCfg?.lives||5}/></div>)}
+        <div style={{display:'grid',gridTemplateColumns:'0.92fr 0.92fr 1.16fr',gap:'clamp(5px,1.8vw,8px)',marginBottom:10}}>
+          <div style={{background:'rgba(255,255,255,.92)',borderRadius:'clamp(16px,5vw,20px)',padding:'clamp(8px,2.4vw,10px) clamp(4px,1.8vw,8px)',minWidth:0,textAlign:'center',boxShadow:'0 8px 18px rgba(0,80,150,.12)'}}><div style={{fontSize:'clamp(10px,2.8vw,11px)',fontWeight:900,color:'#47708C',whiteSpace:'nowrap'}}>{T.score[lang]}</div><div style={{fontSize:'clamp(17px,5vw,20px)',fontWeight:900,color:'#06457E',whiteSpace:'nowrap'}}>⭐ {score}</div></div>
+          <div style={{background:'rgba(255,255,255,.92)',borderRadius:'clamp(16px,5vw,20px)',padding:'clamp(8px,2.4vw,10px) clamp(4px,1.8vw,8px)',minWidth:0,textAlign:'center',boxShadow:'0 8px 18px rgba(0,80,150,.12)'}}><div style={{fontSize:'clamp(10px,2.8vw,11px)',fontWeight:900,color:'#47708C',whiteSpace:'nowrap'}}>{T.level[lang]}</div><div style={{fontSize:'clamp(16px,4.8vw,18px)',fontWeight:900,color:'#06457E',whiteSpace:'nowrap'}}>Lv.{lv+1}</div></div>
+          {mode==='time'?(<div style={{background:'rgba(255,255,255,.92)',borderRadius:'clamp(16px,5vw,20px)',padding:'clamp(8px,2.4vw,10px) clamp(4px,1.8vw,8px)',minWidth:0,textAlign:'center',boxShadow:'0 8px 18px rgba(0,80,150,.12)'}}><div style={{fontSize:'clamp(10px,2.8vw,11px)',fontWeight:900,color:'#47708C',whiteSpace:'nowrap'}}>{T.timeL[lang]}</div><div style={{fontSize:'clamp(17px,5vw,20px)',fontWeight:900,color:timeLft<=10?'#FF3B73':'#06457E',whiteSpace:'nowrap'}}>{T.secT(timeLft,lang)}</div></div>):(<div style={{background:'rgba(255,255,255,.92)',borderRadius:'clamp(16px,5vw,20px)',padding:'clamp(8px,2.2vw,9px) clamp(3px,1.4vw,6px)',minWidth:0,textAlign:'center',boxShadow:'0 8px 18px rgba(0,80,150,.12)',overflow:'hidden'}}><div style={{fontSize:'clamp(10px,2.8vw,11px)',fontWeight:900,color:'#47708C',whiteSpace:'nowrap'}}>{T.lives[lang]}</div><Hearts lives={lives} max={mCfg?.lives||5}/></div>)}
         </div>
         <div style={{display:'flex',alignItems:'center',gap:10,background:'rgba(255,255,255,.24)',border:'2px solid rgba(255,255,255,.45)',borderRadius:24,padding:10,marginBottom:10}}>
           <PetBubble pet={currentPet} pulse={petPulse}/>
@@ -1170,7 +1170,7 @@ function App(){
             }
             const isDisabled=lockd||((mode==='listen'||mode==='time')&&lstPh);
             const l2=String(c).length;
-            return(<button key={i} onClick={()=>handleA(c)} disabled={isDisabled} style={{background:bg,border:bd,borderRadius:24,padding:'18px 6px',fontSize:l2>3?22:l2>2?28:36,fontWeight:900,color:cl,boxShadow:sh,transition:'all 0.2s',minHeight:82,opacity:isDisabled&&selA===null?0.45:1,textShadow:'0 2px 4px rgba(0,0,0,.16)'}}>{c}</button>);
+            return(<button key={i} onClick={()=>handleA(c)} disabled={isDisabled} style={{background:bg,border:bd,borderRadius:'clamp(20px,6vw,24px)',padding:'clamp(13px,4vw,18px) 6px',fontSize:l2>3?'clamp(19px,5.6vw,22px)':l2>2?'clamp(23px,7vw,28px)':'clamp(30px,9.2vw,36px)',fontWeight:900,color:cl,boxShadow:sh,transition:'all 0.2s',minHeight:'clamp(68px,19vw,82px)',opacity:isDisabled&&selA===null?0.45:1,textShadow:'0 2px 4px rgba(0,0,0,.16)'}}>{c}</button>);
           })}
         </div>
         {fbTy&&fbTy!=='c'&&(<div style={{marginTop:12,fontSize:20,fontWeight:900,color:'white',textShadow:'0 3px 10px rgba(0,60,120,.35)',textAlign:'center',animation:'fadeInUp 0.3s ease-out'}}>
