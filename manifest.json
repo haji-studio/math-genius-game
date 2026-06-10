@@ -1,0 +1,50 @@
+{
+  "name": "들어요 산수",
+  "short_name": "들어요 산수",
+  "description": "한국어, 영어, 중국어, 스페인어로 산수 문제를 듣고 푸는 무료 교육형 퀴즈 게임",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1ECBEA",
+  "theme_color": "#1ECBEA",
+  "lang": "ko-KR",
+  "icons": [
+    {
+      "src": "icons/app_logo_192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/app_logo_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/portrait_01_home_636x1048.png",
+      "sizes": "636x1048",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "screenshots/portrait_02_game_636x1048.png",
+      "sizes": "636x1048",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "screenshots/portrait_03_report_636x1048.png",
+      "sizes": "636x1048",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "screenshots/landscape_01_intro_1504x741.png",
+      "sizes": "1504x741",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
+}
